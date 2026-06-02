@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <!-- ====================================================
+    DIGI UPLIFT NE
+    PAGE: INDEX.HTML
+
+    Purpose:
+    Main Homepage
+
+    Notes:
+    - Master design template for all pages
+    - Uses dark theme branding
+    - Uses Poppins font
+    - Appointment funnel starts here
+
+    ==================================================== -->
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        DIGI Uplift NE | Digital Marketing Agency
+    </title>
+
+    <!-- ====================================================
+    GOOGLE FONT
+    ==================================================== -->
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- ====================================================
+    FONT AWESOME ICONS
+    ==================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+    <style>
+
+    /* ====================================================
+    ROOT VARIABLES
+
+    Edit these values to change
+    global branding quickly.
+
+    ==================================================== */
+
+    :root{
+
+        --primary:#00ff88;
+
+        --dark:#0a0a0a;
+
+        --card:#111;
+
+        --border:rgba(255,255,255,.08);
+
+        --text:#fff;
+
+        --radius:20px;
+    }
+
+    /* ====================================================
+    GLOBAL RESET
+    ==================================================== */
+
+    *{
+
+        margin:0;
+
+        padding:0;
+
+        box-sizing:border-box;
+
+        font-family:Poppins,sans-serif;
+    }
+
+    html{
+
+        scroll-behavior:smooth;
+    }
+
+    body{
+
+        background:var(--dark);
+
+        color:var(--text);
+    }
+
+    a{
+
+        text-decoration:none;
+
+        color:inherit;
+    }
+
+    /* ====================================================
+    COMMON SECTION STYLES
+    ==================================================== */
+
+  .section{
+
+    padding:80px 8%;
+
+}
+
+
+
+    .section-title{
+
+        text-align:center;
+
+        font-size:2.4rem;
+
+        margin-bottom:40px;
+    }
+
+    .grid{
+
+        display:grid;
+
+        grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(250px,1fr)
+        );
+
+        gap:20px;
+    }
+
+    /* ====================================================
+    NAVIGATION BAR
+    ==================================================== */
+
+    nav{
+
+        position:sticky;
+
+        top:0;
+
+        z-index:1000;
+
+        display:flex;
+
+        justify-content:space-between;
+
+        align-items:center;
+
+        padding:18px 8%;
+
+        background:#111;
+
+        border-bottom:
+        1px solid var(--border);
+    }
+
+    .logo{
+
+        font-size:1.4rem;
+
+        font-weight:800;
+
+        color:var(--primary);
+    }
+
+    .nav-links{
+
+        display:flex;
+
+        align-items:center;
+
+        gap:20px;
+    }
+
+    .nav-cta{
+
+        background:var(--primary);
+
+        color:#000;
+
+        padding:10px 18px;
+
+        border-radius:50px;
+
+        font-weight:700;
+    }
+
+     .nav-links a{
+
+     position:relative;
+    }
+
+     .nav-links a::after{
+
+     content:"";
+
+     position:absolute;
+
+     left:0;
+     bottom:-5px;
+
+     width:0;
+
+     height:2px;
+
+     background:var(--primary);
+
+     transition:.3s;
+    }
+
+     .nav-links a:hover::after{
+
+     width:100%;
+     }
+
+    /* ====================================================
+    BUTTONS
+    ==================================================== */
+
+    .btn{
+
+        display:inline-block;
+
+        background:var(--primary);
+
+        color:#000;
+
+        padding:14px 28px;
+
+        border-radius:50px;
+
+        font-weight:700;
+
+        margin-top:25px;
+    }
+
+     .btn{
+
+     transition:.3s;
+    }
+
+     .btn:hover{
+
+     transform:translateY(-3px);
+
+     box-shadow:
+     0 10px 25px rgba(0,255,136,.3);
+    }
+
+    /* ====================================================
+    HERO SECTION
+    ==================================================== */
+
+    .hero{
+
+        min-height:75vh;
+
+        display:flex;
+
+        align-items:center;
+
+        justify-content:center;
+
+        text-align:center;
+
+        padding:80px 8%;
+    }
+
+    .hero h1{
+
+        font-size:3.4rem;
+    }
+
+    .hero p{
+
+        max-width:800px;
+
+        margin:20px auto;
+
+        opacity:.85;
+    }
+
+    
+
+    /* ====================================================
+     TEAM CARD COMPONENTS
+
+    Shared by:
+    - Services
+    - Team
+    - Testimonials
+    - FAQ
+    - Stats
+    - Process
+
+    ==================================================== */
+
+    .card,
+    .team-card,
+    .stat,
+    .testimonial,
+    .step,
+    .faq-item{
+
+        background:
+        rgba(255,255,255,.05);
+
+        border:
+        1px solid var(--border);
+
+        padding:24px;
+
+        border-radius:var(--radius);
+    }
+
+    .team-card{
+
+        text-align:center;
+    }
+
+    .avatar{
+
+        width:100px;
+
+        height:100px;
+
+        border-radius:50%;
+
+        margin:0 auto 15px;
+
+        background:#1b1b1b;
+
+        display:flex;
+
+        align-items:center;
+
+        justify-content:center;
+
+        font-size:2rem;
+
+        color:var(--primary);
+    }
+
+    .role{
+
+        color:var(--primary);
+
+        font-size:.9rem;
+    }
+
+     .card:hover,
+     .team-card:hover,
+     .testimonial:hover,
+     .step:hover{
+
+     transform:translateY(-8px);
+
+     border-color:var(--primary);
+
+     box-shadow:
+     0 15px 40px rgba(0,255,136,.12);
+    }
+
+
+     .team-card{
+
+     overflow:hidden;
+    }
+
+     .team-card:hover .avatar{
+
+     transform:scale(1.08);
+    
+    }
+
+     .avatar{
+
+     transition:.35s;
+    }
+
+    @media(max-width:768px){
+
+    .grid{
+
+        grid-template-columns:1fr;
+    }
+
+}
+
+     .card,
+     .team-card,
+     .stat,
+     .step,
+     .testimonial{
+
+     opacity:0;
+
+     transform:translateY(30px);
+
+     transition:.6s;
+}
+
+     .show{
+
+     opacity:1;
+
+     transform:translateY(0);
+}
+
+        .faq-item:hover{
+
+       border-color:var(--primary);
+
+      transform:translateY(-5px);
+
+      box-shadow:
+      0 10px 30px rgba(0,255,136,.15);
+}
+
+
+    
+    
+    /* ====================================================
+    STATS SECTION
+    ==================================================== */
+
+    .stats,
+    .process{
+
+        display:grid;
+
+        grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(220px,1fr)
+        );
+
+        gap:20px;
+    }
+
+    .stat{
+
+        text-align:center;
+    }
+
+    .stat h2{
+
+        color:var(--primary);
+    }
+
+    .client{
+
+        margin-top:10px;
+
+        color:var(--primary);
+    }
+
+    /* ====================================================
+    FLOATING STATS SIDEBAR
+
+    Purpose:
+    Quick credibility indicators
+
+    ==================================================== */
+
+    .side-stats{
+
+        position:fixed;
+
+        right:15px;
+
+        top:30%;
+
+        display:flex;
+
+        flex-direction:column;
+
+        gap:10px;
+
+        z-index:999;
+    }
+
+    .side-stat{
+
+        background:#111;
+
+        padding:12px;
+
+        border-radius:12px;
+
+        border:
+        1px solid var(--border);
+
+        width:90px;
+
+        text-align:center;
+    }
+
+    .side-stat span{
+
+        display:block;
+
+        color:var(--primary);
+
+        font-weight:700;
+    }
+       
+     .side-stat:hover{
+
+     transform:translateX(-5px);
+
+     border-color:var(--primary);
+    }
+    
+    
+    
+    
+    /* ====================================================
+    SOCIAL MEDIA DOCK
+
+    Purpose:
+    Quick access to social platforms
+
+    Editable:
+    - Instagram Link
+    - Facebook Link
+    - WhatsApp Link
+    - X (Twitter) Link
+
+    ==================================================== */
+
+    .social-dock{
+
+        position:fixed;
+
+        left:15px;
+
+        bottom:200px;
+
+        display:flex;
+
+        flex-direction:column;
+
+        gap:10px;
+
+        z-index:999;
+    }
+
+    .social-btn{
+
+        width:52px;
+
+        height:52px;
+
+        border-radius:50%;
+
+        background:#111;
+
+        border:
+        1px solid var(--border);
+
+        display:flex;
+
+        align-items:center;
+
+        justify-content:center;
+    }
+
+
+     .social-btn:hover{
+
+     background:var(--primary);
+
+     color:#000;
+
+     transform:translateX(5px);
+}
+
+    @media(max-width:768px){
+
+    .social-dock{
+
+        left:auto;
+
+        right:15px;
+
+        bottom:15px;
+    }
+
+}
+
+
+    /* ====================================================
+    CTA SECTION
+    ==================================================== */
+
+    .cta{
+
+        text-align:center;
+
+        padding:90px 8%;
+
+        background:
+        linear-gradient(
+            135deg,
+            #00ff8815,
+            #111
+        );
+    }
+
+    /* ====================================================
+    FOOTER
+    ==================================================== */
+
+    footer{
+
+        text-align:center;
+
+        padding:40px;
+
+        background:#111;
+    }
+
+
+    /* ====================================================
+    MOUSE GLOW EFFECT
+
+    Full Body Mouse Glow Effect
+
+    ==================================================== */
+
+body{
+
+    background:
+    radial-gradient(
+        circle at top,
+        rgba(0,255,136,.08),
+        #0a0a0a 45%
+    );
+
+    color:#fff;
+}
+
+
+    /* ====================================================
+    RESPONSIVE DESIGN
+
+    Mobile Adjustments
+
+    ==================================================== */
+
+    @media(max-width:768px){
+
+        .hero h1{
+
+            font-size:2.2rem;
+        }
+
+        .side-stats{
+
+            display:none;
+        }
+
+        .nav-links a:not(.nav-cta){
+
+            display:none;
+        }
+    }
+
+        /* ====================================================
+            GLOBAL HOVER ANIMATIONS
+
+            SMOOTH HOVER
+
+           ==================================================== */
+
+
+          .card,
+         .team-card,
+         .stat,
+         .testimonial,
+         .step,
+         .faq-item,
+         .social-btn,
+         .side-stat{
+
+            transition:all .35s ease;
+        }
+    </style>
+
+</head>
+
+<body>
+
+
+
+   
+
+<!-- ====================================================
+NAVIGATION BAR
+
+Purpose:
+Primary website navigation
+
+==================================================== -->
+
+<nav>
+
+    <div class="logo">
+        🚀 DIGI Uplift NE
+    </div>
+
+    <div class="nav-links">
+
+        <a href="index.html">
+            Home
+        </a>
+
+        <a href="services.html">
+            Services
+        </a>
+
+        <a href="case-studies.html">
+            Case Studies
+        </a>
+
+        <a href="about.html">
+            About
+        </a>
+
+        <a href="contact.html">
+            Contact
+        </a>
+
+        <a
+            href="appointment.html"
+            class="nav-cta"
+        >
+            📅 Book Appointment
+        </a>
+
+    </div>
+
+</nav>
+
+<!-- ====================================================
+FLOATING STATS SIDEBAR
+
+Purpose:
+Display quick credibility metrics
+
+Editable:
+- Leads
+- Clients
+- Growth
+- Rating
+
+==================================================== -->
+
+
+<div class="side-stats">
+
+    <div class="side-stat">
+
+        <span>
+            250+
+        </span>
+
+        <small>
+            Leads
+        </small>
+
+    </div>
+
+    <div class="side-stat">
+
+        <span>
+            95+
+        </span>
+
+        <small>
+            Clients
+        </small>
+
+    </div>
+
+    <div class="side-stat">
+
+        <span>
+            320%
+        </span>
+
+        <small>
+            Growth
+        </small>
+
+    </div>
+
+    <div class="side-stat">
+
+        <span>
+            4.9★
+        </span>
+
+        <small>
+            Rating
+        </small>
+
+    </div>
+
+</div>
+
+<!-- ====================================================
+SOCIAL MEDIA DOCK
+
+Replace links below with
+actual social media URLs.
+
+==================================================== -->
+
+<div class="social-dock">
+
+    <a
+        class="social-btn"
+        href="https://www.instagram.com/support.digiuplift/"target="_blank"
+    >
+        <i class="fab fa-instagram"></i>
+    </a>
+
+    <a
+        class="social-btn"
+        href="https://www.facebook.com/profile.php?id=61590467314804"target="_blank"
+    >
+        <i class="fab fa-facebook-f"></i>
+    </a>
+
+    <a
+        class="social-btn"
+        href="https://wa.me/917005137976"target="_blank"
+    >
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <a
+        class="social-btn"
+        href="https://x.com/digiuplift_NE"target="_blank"
+    >
+        <i class="fab fa-x-twitter"></i>
+    </a>
+
+</div>
+
+<!-- ====================================================
+HERO SECTION
+
+Purpose:
+Primary headline and CTA
+
+==================================================== -->
+
+<section class="hero">
+
+    <div>
+
+        <h1>
+            We Build Brands That Generate Revenue 🚀
+        </h1>
+
+        <p>
+
+            DIGI Uplift NE helps businesses across
+            Northeast India grow with SEO,
+            Google Ads, Meta Ads, Websites,
+            Social Media Marketing and
+            AI Automation.
+
+        </p>
+
+        <a
+            href="appointment.html"
+            class="btn"
+        >
+            📅 Book Free Appointment
+        </a>
+
+    </div>
+
+</section>
+
+<!-- ====================================================
+TEAM SECTION
+
+Purpose:
+Introduce team members
+
+How To Add:
+Duplicate a .team-card block
+
+==================================================== -->
+
+<section class="section">
+
+    <h2 class="section-title">
+        👨‍💻 Meet Our Team
+    </h2>
+
+    <div class="grid">
+
+        <div class="team-card">
+
+            <div class="avatar">
+                <i class="fa-solid fa-user-tie"></i>
+            </div>
+
+            <h3>
+                Shuvan Shil
+            </h3>
+
+            <div class="role">
+                CEO & Back-end Dev🔗
+            </div>
+
+        </div>
+
+        <div class="team-card">
+
+            <div class="avatar">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+
+            <h3>
+                Sumit Deb
+            </h3>
+
+            <div class="role">
+                CMO & Front-end Dev🚀
+            </div>
+
+        </div>
+
+        <div class="team-card">
+
+            <div class="avatar">
+                <i class="fa-solid fa-palette"></i>
+            </div>
+
+            <h3>
+                Priya Das
+            </h3>
+
+            <div class="role">
+                Creative Designer
+            </div>
+
+        </div>
+
+        <div class="team-card">
+
+            <div class="avatar">
+                <i class="fa-solid fa-code"></i>
+            </div>
+
+            <h3>
+                Subham Paul
+            </h3>
+
+            <div class="role">
+                Web Developer & Automation
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+<!-- ====================================================
+STATS SECTION
+
+Purpose:
+Display agency performance metrics
+
+Editable:
+- Leads Generated
+- Businesses Assisted
+- Growth Percentage
+- Client Satisfaction
+
+==================================================== -->
+
+<section class="section">
+
+    <div class="stats">
+
+        <div class="stat">
+
+            <h2>
+                250+
+            </h2>
+
+            <p>
+                Leads Generated
+            </p>
+
+        </div>
+
+        <div class="stat">
+
+            <h2>
+                95+
+            </h2>
+
+            <p>
+                Businesses Assisted
+            </p>
+
+        </div>
+
+        <div class="stat">
+
+            <h2>
+                320%
+            </h2>
+
+            <p>
+                Average Growth
+            </p>
+
+        </div>
+
+        <div class="stat">
+
+            <h2>
+                4.9★
+            </h2>
+
+            <p>
+                Client Satisfaction
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ====================================================
+SERVICES SECTION
+
+Purpose:
+Highlight core agency services
+
+Editable:
+Duplicate a .card block
+to add more services.
+
+==================================================== -->
+
+<section class="section">
+
+    <h2 class="section-title">
+        💼 Services
+    </h2>
+
+    <div class="grid">
+
+        <div class="card">
+
+            <h3>
+                SEO
+            </h3>
+
+            <p>
+                Improve rankings and
+                organic visibility.
+            </p>
+
+        </div>
+
+        <div class="card">
+
+            <h3>
+                Google Ads
+            </h3>
+
+            <p>
+                Generate high-intent
+                leads and enquiries.
+            </p>
+
+        </div>
+
+        <div class="card">
+
+            <h3>
+                Meta Ads
+            </h3>
+
+            <p>
+                Reach customers on
+                Facebook and Instagram.
+            </p>
+
+        </div>
+
+        <div class="card">
+
+            <h3>
+                Website Development
+            </h3>
+
+            <p>
+                Build modern and
+                conversion-focused websites.
+            </p>
+
+        </div>
+
+        <div class="card">
+
+            <h3>
+                Social Media Marketing
+            </h3>
+
+            <p>
+                Build authority,
+                engagement and trust.
+            </p>
+
+        </div>
+
+        <div class="card">
+
+            <h3>
+                AI Automation
+            </h3>
+
+            <p>
+                Automate lead capture
+                and customer follow-up.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ====================================================
+PROCESS SECTION
+
+Purpose:
+Show client journey from
+strategy to growth.
+
+==================================================== -->
+
+<section class="section">
+
+    <h2 class="section-title">
+        ⚡ Our Process
+    </h2>
+
+    <div class="process">
+
+        <div class="step">
+
+            <h3>
+                1. Audit
+            </h3>
+
+            <p>
+                Understand business goals
+                and competition.
+            </p>
+
+        </div>
+
+        <div class="step">
+
+            <h3>
+                2. Strategy
+            </h3>
+
+            <p>
+                Create a customized
+                growth roadmap.
+            </p>
+
+        </div>
+
+        <div class="step">
+
+            <h3>
+                3. Execute
+            </h3>
+
+            <p>
+                Launch campaigns
+                and optimize.
+            </p>
+
+        </div>
+
+        <div class="step">
+
+            <h3>
+                4. Scale
+            </h3>
+
+            <p>
+                Improve ROI and
+                expand results.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ====================================================
+CLIENT TESTIMONIALS
+
+Purpose:
+Build trust through
+client feedback.
+
+==================================================== -->
+
+<section class="section">
+
+    <h2 class="section-title">
+        ⭐ Client Feedback
+    </h2>
+
+    <div class="grid">
+
+        <div class="testimonial">
+
+            <p>
+                “The website redesign helped
+                us get more enquiries from
+                Agartala and nearby areas.”
+            </p>
+
+            <div class="client">
+                Rajib Debnath • Agartala
+            </div>
+
+        </div>
+
+        <div class="testimonial">
+
+            <p>
+                “Professional communication
+                and practical digital
+                marketing support.”
+            </p>
+
+            <div class="client">
+                Ananya Dutta • Guwahati
+            </div>
+
+        </div>
+
+        <div class="testimonial">
+
+            <p>
+                “Our business visibility
+                improved significantly after
+                local SEO work.”
+            </p>
+
+            <div class="client">
+                Rakesh Agarwal • Shillong
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ====================================================
+FREQUENTLY ASKED QUESTIONS
+
+Purpose:
+Answer common customer questions.
+
+==================================================== -->
+
+<section class="section">
+
+    <h2 class="section-title">
+        ❓ FAQs
+    </h2>
+
+    <div class="faq-item">
+
+        <h4>
+            How quickly can I see results?
+        </h4>
+
+        <p>
+            Usually within 30–90 days
+            depending on the service.
+        </p>
+
+    </div>
+
+    <br>
+
+    <div class="faq-item">
+
+        <h4>
+            Do you work with small businesses?
+        </h4>
+
+        <p>
+            Yes, startups and local businesses
+            are our primary focus.
+        </p>
+
+    </div>
+
+    <br>
+
+    <div class="faq-item">
+
+        <h4>
+            Is the consultation free?
+        </h4>
+
+        <p>
+            Yes, the first strategy session
+            is completely free.
+        </p>
+
+   </div>
+
+</section>
+
+<!-- ====================================================
+CALL TO ACTION SECTION
+
+Purpose:
+Convert visitors into leads.
+
+==================================================== -->
+
+<section class="cta">
+
+    <h2>
+        Ready To Grow Your Business?
+    </h2>
+
+    <p>
+        Book a free consultation and
+        receive a growth roadmap.
+    </p>
+
+    <br>
+
+    <a
+        href="appointment.html"
+        class="btn"
+    >
+        📅 Book Free Appointment
+    </a>
+
+</section>
+
+ 
+
+<!-- ====================================================
+FOOTER
+
+Purpose:
+Basic business information
+
+Editable:
+- Address
+- Email
+- Website
+
+==================================================== -->
+
+<footer>
+
+    🚀 DIGI Uplift NE |
+    
+
+    📍 Agartala, Tripura |
+    
+
+    📧 support.digiuplift@gmail.com |
+   
+
+    🌐 digiuplift.in |
+
+</footer>
+
+    
+
+   
+
+<script>
+
+const observer =
+new IntersectionObserver(entries=>{
+
+    entries.forEach(entry=>{
+
+        if(entry.isIntersecting){
+
+            entry.target.classList.add("show");
+        }
+
+    });
+
+});
+
+document
+.querySelectorAll(
+'.card,.team-card,.stat,.step,.testimonial'
+)
+.forEach(el=>observer.observe(el));
+
+</script>
+
+
+
+</body>
+</html>
