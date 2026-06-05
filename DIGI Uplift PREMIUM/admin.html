@@ -1,0 +1,2421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<!-- ====================================================
+DIGI UPLIFT NE
+PAGE: ADMIN.HTML
+
+Purpose:
+Secure admin dashboard to manage all
+frontend data — appointments, contact
+form leads, testimonials, case studies,
+services, team, stats, and site settings.
+
+Connects to:
+- appointment.html  (bookings)
+- contact.html      (contact form leads)
+- index.html        (stats, team, testimonials, FAQs)
+- services.html     (services list + pricing)
+- case-studies.html (case study cards)
+- about.html        (team bios, values)
+
+Backend Integration Points:
+Each section has a clearly marked
+API_ENDPOINT comment — replace with
+your actual backend fetch() calls.
+
+Security:
+PIN-based login gate (change PIN below).
+In production: replace with proper
+server-side session authentication.
+
+==================================================== -->
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard | DIGI Uplift NE</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<style>
+
+/* ====================================================
+ROOT VARIABLES — matches site theme exactly
+==================================================== */
+:root{
+    --primary:#00ff88;
+    --primary-dim:rgba(0,255,136,.12);
+    --primary-border:rgba(0,255,136,.25);
+    --dark:#0a0a0a;
+    --surface:#111;
+    --surface2:#161616;
+    --surface3:#1c1c1c;
+    --border:rgba(255,255,255,.07);
+    --text:#fff;
+    --text-muted:rgba(255,255,255,.5);
+    --text-dim:rgba(255,255,255,.7);
+    --radius:14px;
+    --radius-sm:8px;
+    --red:#ff4d4d;
+    --yellow:#ffcc00;
+    --blue:#4d9fff;
+    --sidebar:240px;
+}
+
+/* ====================================================
+RESET
+==================================================== */
+*{ margin:0; padding:0; box-sizing:border-box; font-family:Poppins,sans-serif; }
+html{ scroll-behavior:smooth; }
+body{ background:var(--dark); color:var(--text); min-height:100vh; }
+a{ text-decoration:none; color:inherit; }
+button{ cursor:pointer; font-family:Poppins,sans-serif; }
+input,select,textarea{ font-family:Poppins,sans-serif; }
+
+/* ====================================================
+LOGIN GATE
+==================================================== */
+#loginGate{
+    position:fixed; inset:0; z-index:9999;
+    background:radial-gradient(circle at 40% 30%, rgba(0,255,136,.07), #0a0a0a 60%);
+    display:flex; align-items:center; justify-content:center;
+}
+
+.login-box{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:48px 44px;
+    width:100%; max-width:400px;
+    text-align:center;
+    animation:fadeUp .5s ease;
+}
+
+@keyframes fadeUp{
+    from{ opacity:0; transform:translateY(24px); }
+    to{ opacity:1; transform:translateY(0); }
+}
+
+.login-logo{
+    font-size:1.5rem; font-weight:800;
+    color:var(--primary); margin-bottom:8px;
+}
+
+.login-box h2{
+    font-size:1.3rem; margin-bottom:6px;
+}
+
+.login-box p{
+    font-size:.85rem; color:var(--text-muted);
+    margin-bottom:32px;
+}
+
+.pin-row{
+    display:flex; gap:10px;
+    justify-content:center; margin-bottom:24px;
+}
+
+.pin-dot{
+    width:14px; height:14px; border-radius:50%;
+    background:var(--border); border:2px solid var(--border);
+    transition:.2s;
+}
+
+.pin-dot.filled{
+    background:var(--primary);
+    border-color:var(--primary);
+}
+
+.pin-pad{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px; margin-bottom:18px;
+}
+
+.pin-btn{
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    color:var(--text);
+    padding:14px;
+    font-size:1.1rem; font-weight:600;
+    transition:.2s;
+}
+
+.pin-btn:hover{ background:var(--surface3); border-color:var(--primary-border); }
+.pin-btn:active{ transform:scale(.94); }
+
+.pin-clear{
+    background:rgba(255,77,77,.08);
+    border:1px solid rgba(255,77,77,.2);
+    border-radius:var(--radius-sm);
+    color:var(--red);
+    padding:12px;
+    font-size:.85rem; font-weight:600;
+    grid-column:1/4; transition:.2s;
+}
+
+.pin-clear:hover{ background:rgba(255,77,77,.15); }
+
+.login-error{
+    color:var(--red); font-size:.83rem;
+    min-height:20px; margin-top:4px;
+}
+
+/* ====================================================
+DASHBOARD LAYOUT
+==================================================== */
+#dashboard{ display:none; }
+
+.layout{
+    display:grid;
+    grid-template-columns:var(--sidebar) 1fr;
+    min-height:100vh;
+}
+
+/* ====================================================
+SIDEBAR
+==================================================== */
+.sidebar{
+    background:var(--surface);
+    border-right:1px solid var(--border);
+    display:flex; flex-direction:column;
+    position:sticky; top:0; height:100vh;
+    overflow-y:auto;
+}
+
+.sidebar-logo{
+    padding:24px 20px 18px;
+    border-bottom:1px solid var(--border);
+}
+
+.sidebar-logo .brand{
+    font-size:1.1rem; font-weight:800;
+    color:var(--primary); display:block;
+}
+
+.sidebar-logo .sub{
+    font-size:.72rem; color:var(--text-muted);
+    margin-top:2px; display:block;
+}
+
+.sidebar-nav{
+    padding:16px 12px;
+    flex:1;
+}
+
+.nav-section-label{
+    font-size:.67rem; font-weight:700;
+    letter-spacing:.1em; color:var(--text-muted);
+    text-transform:uppercase;
+    padding:10px 8px 6px;
+}
+
+.nav-item{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px;
+    border-radius:var(--radius-sm);
+    font-size:.85rem; font-weight:500;
+    color:var(--text-dim);
+    cursor:pointer; transition:.2s;
+    margin-bottom:2px;
+    border:1px solid transparent;
+    background:none;
+    width:100%; text-align:left;
+}
+
+.nav-item i{ width:16px; text-align:center; font-size:.9rem; }
+
+.nav-item:hover{
+    background:var(--primary-dim);
+    color:var(--text);
+    border-color:var(--primary-border);
+}
+
+.nav-item.active{
+    background:var(--primary-dim);
+    color:var(--primary);
+    border-color:var(--primary-border);
+    font-weight:600;
+}
+
+.nav-item .badge{
+    margin-left:auto;
+    background:var(--red);
+    color:#fff;
+    font-size:.65rem; font-weight:700;
+    padding:2px 7px; border-radius:50px;
+}
+
+.sidebar-footer{
+    padding:16px 12px;
+    border-top:1px solid var(--border);
+}
+
+.sidebar-user{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px;
+    background:var(--surface2);
+    border-radius:var(--radius-sm);
+    border:1px solid var(--border);
+}
+
+.user-avatar{
+    width:32px; height:32px; border-radius:50%;
+    background:var(--primary-dim);
+    border:1px solid var(--primary-border);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--primary); font-size:.85rem; flex-shrink:0;
+}
+
+.user-name{ font-size:.8rem; font-weight:600; }
+.user-role{ font-size:.7rem; color:var(--text-muted); }
+
+.logout-btn{
+    margin-left:auto;
+    background:none; border:none;
+    color:var(--text-muted); font-size:.85rem;
+    transition:.2s; padding:4px;
+}
+
+.logout-btn:hover{ color:var(--red); }
+
+/* ====================================================
+MAIN CONTENT AREA
+==================================================== */
+.main{
+    background:radial-gradient(circle at 70% 10%, rgba(0,255,136,.04), transparent 50%);
+    overflow-y:auto;
+}
+
+.topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 32px;
+    background:rgba(17,17,17,.8);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:100;
+}
+
+.topbar-title h2{ font-size:1.15rem; font-weight:700; }
+.topbar-title p{ font-size:.78rem; color:var(--text-muted); margin-top:2px; }
+
+.topbar-actions{ display:flex; align-items:center; gap:12px; }
+
+.topbar-btn{
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    color:var(--text-dim);
+    padding:8px 14px;
+    font-size:.8rem; font-weight:500;
+    transition:.2s; display:flex; align-items:center; gap:6px;
+}
+
+.topbar-btn:hover{ border-color:var(--primary-border); color:var(--primary); }
+
+.topbar-btn.primary{
+    background:var(--primary);
+    color:#000; border-color:var(--primary);
+    font-weight:700;
+}
+
+.topbar-btn.primary:hover{ box-shadow:0 4px 16px rgba(0,255,136,.3); transform:translateY(-1px); }
+
+/* Live dot */
+.live-dot{
+    width:8px; height:8px; border-radius:50%;
+    background:var(--primary);
+    animation:pulse 2s infinite;
+    display:inline-block;
+}
+
+@keyframes pulse{
+    0%,100%{ opacity:1; box-shadow:0 0 0 0 rgba(0,255,136,.4); }
+    50%{ opacity:.7; box-shadow:0 0 0 6px rgba(0,255,136,0); }
+}
+
+/* ====================================================
+SECTIONS (views)
+==================================================== */
+.view{ display:none; padding:28px 32px 48px; animation:fadeIn .3s ease; }
+.view.active{ display:block; }
+
+@keyframes fadeIn{
+    from{ opacity:0; transform:translateY(8px); }
+    to{ opacity:1; transform:translateY(0); }
+}
+
+/* ====================================================
+STAT CARDS ROW
+==================================================== */
+.stat-row{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:16px; margin-bottom:28px;
+}
+
+.stat-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    transition:.3s;
+}
+
+.stat-card:hover{
+    border-color:var(--primary-border);
+    transform:translateY(-3px);
+    box-shadow:0 8px 24px rgba(0,255,136,.08);
+}
+
+.stat-card-label{
+    font-size:.75rem; color:var(--text-muted);
+    font-weight:500; margin-bottom:8px;
+    display:flex; align-items:center; gap:6px;
+}
+
+.stat-card-label i{ color:var(--primary); }
+
+.stat-card-value{
+    font-size:2rem; font-weight:800;
+    color:var(--primary); line-height:1;
+}
+
+.stat-card-sub{
+    font-size:.75rem; color:var(--text-muted);
+    margin-top:6px;
+}
+
+.stat-card-sub .up{ color:#00cc66; }
+.stat-card-sub .down{ color:var(--red); }
+
+/* ====================================================
+DATA TABLE
+==================================================== */
+.table-wrap{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    overflow:hidden;
+    margin-bottom:24px;
+}
+
+.table-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 22px;
+    border-bottom:1px solid var(--border);
+}
+
+.table-header h3{ font-size:.95rem; font-weight:700; }
+
+.table-header p{ font-size:.78rem; color:var(--text-muted); margin-top:2px; }
+
+.table-actions{ display:flex; gap:8px; align-items:center; }
+
+.tbl-btn{
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    color:var(--text-dim);
+    padding:7px 12px;
+    font-size:.78rem;
+    display:flex; align-items:center; gap:5px;
+    transition:.2s;
+}
+
+.tbl-btn:hover{ border-color:var(--primary-border); color:var(--primary); }
+
+.search-input{
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    color:var(--text);
+    padding:7px 12px 7px 32px;
+    font-size:.8rem;
+    outline:none;
+    width:200px;
+    transition:.2s;
+    position:relative;
+}
+
+.search-wrap{ position:relative; }
+.search-wrap i{
+    position:absolute; left:10px; top:50%;
+    transform:translateY(-50%);
+    color:var(--text-muted); font-size:.8rem;
+    pointer-events:none;
+}
+
+.search-input:focus{ border-color:var(--primary-border); width:240px; }
+
+table{
+    width:100%; border-collapse:collapse;
+    font-size:.82rem;
+}
+
+thead th{
+    padding:12px 18px;
+    text-align:left;
+    font-size:.72rem; font-weight:700;
+    letter-spacing:.06em; text-transform:uppercase;
+    color:var(--text-muted);
+    background:var(--surface2);
+    border-bottom:1px solid var(--border);
+}
+
+tbody tr{
+    border-bottom:1px solid var(--border);
+    transition:.2s;
+}
+
+tbody tr:last-child{ border-bottom:none; }
+tbody tr:hover{ background:rgba(255,255,255,.02); }
+
+tbody td{
+    padding:13px 18px;
+    color:var(--text-dim);
+    vertical-align:middle;
+}
+
+.td-name{ font-weight:600; color:var(--text); }
+
+/* ====================================================
+STATUS BADGES
+==================================================== */
+.badge{
+    display:inline-flex; align-items:center; gap:4px;
+    padding:3px 10px; border-radius:50px;
+    font-size:.7rem; font-weight:700;
+    letter-spacing:.03em;
+}
+
+.badge-new{ background:rgba(0,255,136,.12); color:var(--primary); border:1px solid var(--primary-border); }
+.badge-pending{ background:rgba(255,204,0,.1); color:var(--yellow); border:1px solid rgba(255,204,0,.25); }
+.badge-confirmed{ background:rgba(77,159,255,.1); color:var(--blue); border:1px solid rgba(77,159,255,.25); }
+.badge-done{ background:rgba(255,255,255,.06); color:var(--text-muted); border:1px solid var(--border); }
+.badge-cancelled{ background:rgba(255,77,77,.1); color:var(--red); border:1px solid rgba(255,77,77,.2); }
+
+/* ====================================================
+ACTION BUTTONS IN TABLE
+==================================================== */
+.row-actions{ display:flex; gap:6px; }
+
+.action-btn{
+    width:28px; height:28px;
+    border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:.75rem;
+    transition:.2s;
+    border:1px solid var(--border);
+    background:var(--surface2);
+    color:var(--text-muted);
+}
+
+.action-btn:hover{ border-color:var(--primary-border); color:var(--primary); }
+.action-btn.del:hover{ border-color:rgba(255,77,77,.3); color:var(--red); }
+
+/* ====================================================
+CARD GRID (for services, team, etc.)
+==================================================== */
+.card-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:16px;
+    margin-bottom:24px;
+}
+
+.admin-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:20px;
+    transition:.3s;
+    position:relative;
+}
+
+.admin-card:hover{
+    border-color:var(--primary-border);
+    box-shadow:0 8px 24px rgba(0,255,136,.07);
+}
+
+.admin-card-icon{
+    width:44px; height:44px; border-radius:10px;
+    background:var(--primary-dim);
+    border:1px solid var(--primary-border);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--primary); font-size:1.1rem;
+    margin-bottom:14px;
+}
+
+.admin-card h4{ font-size:.95rem; margin-bottom:4px; }
+.admin-card p{ font-size:.8rem; color:var(--text-muted); line-height:1.5; }
+
+.card-chip{
+    display:inline-block;
+    background:var(--primary-dim);
+    border:1px solid var(--primary-border);
+    color:var(--primary);
+    font-size:.68rem; font-weight:700;
+    padding:2px 8px; border-radius:50px;
+    margin-top:10px;
+}
+
+.card-top-actions{
+    position:absolute; top:14px; right:14px;
+    display:flex; gap:5px;
+}
+
+/* ====================================================
+FORM MODAL
+==================================================== */
+.modal-overlay{
+    position:fixed; inset:0; z-index:2000;
+    background:rgba(0,0,0,.7);
+    backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center;
+    padding:20px;
+}
+
+.modal-overlay.open{ display:flex; }
+
+.modal{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:20px;
+    width:100%; max-width:560px;
+    max-height:90vh; overflow-y:auto;
+    animation:fadeUp .3s ease;
+}
+
+.modal-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 26px;
+    border-bottom:1px solid var(--border);
+}
+
+.modal-head h3{ font-size:1rem; font-weight:700; }
+
+.modal-close{
+    width:32px; height:32px; border-radius:8px;
+    background:var(--surface2); border:1px solid var(--border);
+    color:var(--text-muted); display:flex;
+    align-items:center; justify-content:center;
+    font-size:.85rem; transition:.2s;
+}
+
+.modal-close:hover{ border-color:rgba(255,77,77,.3); color:var(--red); }
+
+.modal-body{ padding:24px 26px; }
+
+.field-group{ margin-bottom:16px; }
+
+.field-group label{
+    display:block; font-size:.78rem; font-weight:600;
+    margin-bottom:6px; color:var(--text-dim);
+}
+
+.field-group input,
+.field-group select,
+.field-group textarea{
+    width:100%;
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    color:var(--text);
+    padding:10px 14px;
+    font-size:.85rem;
+    outline:none; transition:.2s;
+}
+
+.field-group input:focus,
+.field-group select:focus,
+.field-group textarea:focus{
+    border-color:var(--primary-border);
+    box-shadow:0 0 0 3px rgba(0,255,136,.07);
+}
+
+.field-group select option{ background:#111; }
+
+.field-group textarea{ resize:vertical; min-height:90px; }
+
+.field-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+.modal-foot{
+    padding:18px 26px;
+    border-top:1px solid var(--border);
+    display:flex; gap:10px; justify-content:flex-end;
+}
+
+.btn-cancel{
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:var(--radius-sm); color:var(--text-dim);
+    padding:9px 18px; font-size:.83rem; font-weight:600;
+    transition:.2s;
+}
+
+.btn-cancel:hover{ border-color:rgba(255,77,77,.3); color:var(--red); }
+
+.btn-save{
+    background:var(--primary); border:1px solid var(--primary);
+    border-radius:var(--radius-sm); color:#000;
+    padding:9px 22px; font-size:.83rem; font-weight:700;
+    transition:.2s;
+}
+
+.btn-save:hover{ box-shadow:0 4px 14px rgba(0,255,136,.3); transform:translateY(-1px); }
+
+/* ====================================================
+DETAIL PANEL (slide-in)
+==================================================== */
+.detail-panel{
+    position:fixed; right:-420px; top:0; bottom:0;
+    width:420px; z-index:1500;
+    background:var(--surface);
+    border-left:1px solid var(--border);
+    overflow-y:auto;
+    transition:.35s ease;
+    box-shadow:-20px 0 60px rgba(0,0,0,.5);
+}
+
+.detail-panel.open{ right:0; }
+
+.panel-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 24px;
+    border-bottom:1px solid var(--border);
+    background:var(--surface);
+    position:sticky; top:0; z-index:5;
+}
+
+.panel-head h3{ font-size:.95rem; font-weight:700; }
+
+.panel-close{
+    width:32px; height:32px; border-radius:8px;
+    background:var(--surface2); border:1px solid var(--border);
+    color:var(--text-muted); display:flex;
+    align-items:center; justify-content:center;
+    font-size:.85rem; transition:.2s;
+}
+
+.panel-close:hover{ border-color:rgba(255,77,77,.3); color:var(--red); }
+
+.panel-body{ padding:22px 24px; }
+
+.detail-row{
+    display:flex; justify-content:space-between;
+    align-items:flex-start;
+    padding:10px 0;
+    border-bottom:1px solid var(--border);
+    font-size:.83rem;
+}
+
+.detail-row:last-child{ border-bottom:none; }
+
+.detail-row .lbl{ color:var(--text-muted); flex-shrink:0; width:130px; }
+.detail-row .val{ color:var(--text); font-weight:500; text-align:right; flex:1; }
+
+.panel-section-title{
+    font-size:.72rem; font-weight:700; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--text-muted);
+    margin:20px 0 10px;
+}
+
+.status-select{
+    width:100%; margin-top:16px;
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:var(--radius-sm); color:var(--text);
+    padding:9px 12px; font-size:.83rem; outline:none; transition:.2s;
+}
+
+.status-select:focus{ border-color:var(--primary-border); }
+
+.panel-btn{
+    width:100%; margin-top:10px;
+    padding:11px;
+    border-radius:var(--radius-sm);
+    font-size:.85rem; font-weight:700;
+    transition:.2s;
+}
+
+.panel-btn-primary{
+    background:var(--primary); border:none; color:#000;
+}
+
+.panel-btn-primary:hover{ box-shadow:0 4px 14px rgba(0,255,136,.3); }
+
+.panel-btn-ghost{
+    background:var(--surface2);
+    border:1px solid var(--border);
+    color:var(--text-dim);
+}
+
+.panel-btn-ghost:hover{ border-color:var(--primary-border); color:var(--primary); }
+
+.panel-btn-danger{
+    background:rgba(255,77,77,.08);
+    border:1px solid rgba(255,77,77,.2);
+    color:var(--red);
+}
+
+.panel-btn-danger:hover{ background:rgba(255,77,77,.15); }
+
+/* ====================================================
+SETTINGS GRID
+==================================================== */
+.settings-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    gap:20px;
+}
+
+.settings-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:24px;
+}
+
+.settings-card h4{
+    font-size:.9rem; font-weight:700;
+    margin-bottom:4px; display:flex; align-items:center; gap:8px;
+}
+
+.settings-card h4 i{ color:var(--primary); }
+
+.settings-card p{
+    font-size:.78rem; color:var(--text-muted);
+    margin-bottom:18px; line-height:1.5;
+}
+
+.settings-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 0;
+    border-bottom:1px solid var(--border);
+    font-size:.83rem;
+}
+
+.settings-row:last-child{ border-bottom:none; }
+
+.settings-row .s-label{ color:var(--text-dim); }
+
+/* Toggle switch */
+.toggle{
+    position:relative; width:40px; height:22px;
+}
+
+.toggle input{ opacity:0; width:0; height:0; }
+
+.toggle-slider{
+    position:absolute; inset:0;
+    background:var(--surface3); border-radius:50px;
+    transition:.3s; cursor:pointer;
+    border:1px solid var(--border);
+}
+
+.toggle-slider::before{
+    content:""; position:absolute;
+    width:16px; height:16px;
+    left:3px; top:50%; transform:translateY(-50%);
+    background:var(--text-muted); border-radius:50%;
+    transition:.3s;
+}
+
+.toggle input:checked + .toggle-slider{ background:var(--primary-dim); border-color:var(--primary-border); }
+.toggle input:checked + .toggle-slider::before{
+    background:var(--primary);
+    transform:translateY(-50%) translateX(18px);
+}
+
+/* ====================================================
+CHART BAR (simple CSS bars)
+==================================================== */
+.bar-chart{ margin:16px 0; }
+
+.bar-row{
+    display:flex; align-items:center; gap:12px;
+    margin-bottom:10px; font-size:.8rem;
+}
+
+.bar-label{ width:110px; color:var(--text-muted); flex-shrink:0; }
+
+.bar-track{
+    flex:1; height:8px; background:var(--surface3);
+    border-radius:4px; overflow:hidden;
+}
+
+.bar-fill{
+    height:100%; background:var(--primary);
+    border-radius:4px;
+    transition:width 1s ease;
+}
+
+.bar-val{ width:40px; text-align:right; color:var(--text-dim); font-weight:600; }
+
+/* ====================================================
+TOAST NOTIFICATION
+==================================================== */
+#toast{
+    position:fixed; bottom:28px; right:28px;
+    background:var(--surface);
+    border:1px solid var(--primary-border);
+    border-radius:var(--radius);
+    padding:14px 20px;
+    font-size:.85rem; font-weight:500;
+    display:flex; align-items:center; gap:10px;
+    z-index:9999;
+    transform:translateY(80px); opacity:0;
+    transition:.35s ease;
+    min-width:260px;
+    box-shadow:0 8px 32px rgba(0,0,0,.5);
+}
+
+#toast.show{ transform:translateY(0); opacity:1; }
+#toast i{ color:var(--primary); }
+
+/* ====================================================
+EMPTY STATE
+==================================================== */
+.empty-state{
+    text-align:center; padding:60px 20px;
+    color:var(--text-muted);
+}
+
+.empty-state i{ font-size:2.5rem; margin-bottom:14px; display:block; opacity:.3; }
+.empty-state p{ font-size:.88rem; }
+
+/* ====================================================
+SECTION DIVIDER
+==================================================== */
+.section-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:16px;
+}
+
+.section-head h3{ font-size:1rem; font-weight:700; }
+.section-head p{ font-size:.78rem; color:var(--text-muted); }
+
+/* ====================================================
+API ENDPOINT BANNER
+==================================================== */
+.api-banner{
+    background:rgba(77,159,255,.06);
+    border:1px solid rgba(77,159,255,.2);
+    border-radius:var(--radius-sm);
+    padding:12px 16px;
+    font-size:.78rem; color:var(--blue);
+    margin-bottom:20px;
+    display:flex; align-items:center; gap:8px;
+    line-height:1.5;
+}
+
+.api-banner code{
+    background:rgba(77,159,255,.1);
+    padding:1px 6px; border-radius:4px;
+    font-size:.75rem;
+}
+
+/* ====================================================
+RESPONSIVE
+==================================================== */
+@media(max-width:900px){
+    .layout{ grid-template-columns:1fr; }
+    .sidebar{ display:none; }
+    .view{ padding:20px 16px 40px; }
+    .topbar{ padding:16px 20px; }
+    .detail-panel{ width:100%; right:-100%; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ====================================================
+LOGIN GATE
+Change ADMIN_PIN below to your desired PIN.
+In production: use server-side auth.
+==================================================== -->
+<div id="loginGate">
+    <div class="login-box">
+        <div class="login-logo">🚀 DIGI Uplift NE</div>
+        <h2>Admin Dashboard</h2>
+        <p>Enter your 4-digit PIN to continue</p>
+
+        <div class="pin-row" id="pinRow">
+            <div class="pin-dot" id="d0"></div>
+            <div class="pin-dot" id="d1"></div>
+            <div class="pin-dot" id="d2"></div>
+            <div class="pin-dot" id="d3"></div>
+        </div>
+
+        <div class="pin-pad">
+            <button class="pin-btn" onclick="pinPress(1)">1</button>
+            <button class="pin-btn" onclick="pinPress(2)">2</button>
+            <button class="pin-btn" onclick="pinPress(3)">3</button>
+            <button class="pin-btn" onclick="pinPress(4)">4</button>
+            <button class="pin-btn" onclick="pinPress(5)">5</button>
+            <button class="pin-btn" onclick="pinPress(6)">6</button>
+            <button class="pin-btn" onclick="pinPress(7)">7</button>
+            <button class="pin-btn" onclick="pinPress(8)">8</button>
+            <button class="pin-btn" onclick="pinPress(9)">9</button>
+            <button class="pin-btn" onclick="pinPress(0)" style="grid-column:2">0</button>
+        </div>
+
+        <button class="pin-clear" onclick="pinClear()">⌫ Clear</button>
+        <div class="login-error" id="pinError"></div>
+    </div>
+</div>
+
+<!-- ====================================================
+MAIN DASHBOARD
+==================================================== -->
+<div id="dashboard">
+<div class="layout">
+
+    <!-- ================================================
+    SIDEBAR
+    ================================================ -->
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+            <span class="brand">🚀 DIGI Uplift NE</span>
+            <span class="sub">Admin Control Panel</span>
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <div class="nav-section-label">Overview</div>
+            <button class="nav-item active" onclick="showView('overview')">
+                <i class="fa-solid fa-chart-pie"></i> Overview
+            </button>
+
+            <div class="nav-section-label">Leads</div>
+            <button class="nav-item" onclick="showView('appointments')">
+                <i class="fa-solid fa-calendar-check"></i> Appointments
+                <span class="badge" id="apptBadge">3</span>
+            </button>
+            <button class="nav-item" onclick="showView('contacts')">
+                <i class="fa-solid fa-envelope"></i> Contact Leads
+                <span class="badge" id="contactBadge">5</span>
+            </button>
+
+            <div class="nav-section-label">Site Content</div>
+            <button class="nav-item" onclick="showView('services')">
+                <i class="fa-solid fa-briefcase"></i> Services
+            </button>
+            <button class="nav-item" onclick="showView('casestudies')">
+                <i class="fa-solid fa-chart-line"></i> Case Studies
+            </button>
+            <button class="nav-item" onclick="showView('testimonials')">
+                <i class="fa-solid fa-star"></i> Testimonials
+            </button>
+            <button class="nav-item" onclick="showView('team')">
+                <i class="fa-solid fa-users"></i> Team Members
+            </button>
+
+            <div class="nav-section-label">Site Stats</div>
+            <button class="nav-item" onclick="showView('stats')">
+                <i class="fa-solid fa-trophy"></i> Public Stats
+            </button>
+            <button class="nav-item" onclick="showView('faqs')">
+                <i class="fa-solid fa-circle-question"></i> FAQs
+            </button>
+
+            <div class="nav-section-label">System</div>
+            <button class="nav-item" onclick="showView('settings')">
+                <i class="fa-solid fa-gear"></i> Settings
+            </button>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="user-avatar"><i class="fa-solid fa-user-tie"></i></div>
+                <div>
+                    <div class="user-name">Shuvan Shil</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+                <button class="logout-btn" onclick="logout()" title="Logout">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- ================================================
+    MAIN AREA
+    ================================================ -->
+    <main class="main">
+
+        <!-- Topbar -->
+        <div class="topbar">
+            <div class="topbar-title">
+                <h2 id="topbarTitle">Overview</h2>
+                <p id="topbarSub">DIGI Uplift NE — Admin Panel</p>
+            </div>
+            <div class="topbar-actions">
+                <span style="font-size:.78rem;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+                    <span class="live-dot"></span> Live
+                </span>
+                <button class="topbar-btn" onclick="refreshData()">
+                    <i class="fa-solid fa-rotate-right"></i> Refresh
+                </button>
+                <button class="topbar-btn primary" onclick="openModal('addLead')">
+                    <i class="fa-solid fa-plus"></i> Add Lead
+                </button>
+            </div>
+        </div>
+
+        <!-- ============================================
+        VIEW: OVERVIEW
+        ============================================ -->
+        <div class="view active" id="view-overview">
+
+            <div class="api-banner">
+                <i class="fa-solid fa-code"></i>
+                <span><strong>Backend Integration:</strong> Replace mock data with <code>fetch('/api/dashboard/summary')</code> — returns totals for all KPIs below.</span>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="stat-row">
+                <div class="stat-card">
+                    <div class="stat-card-label"><i class="fa-solid fa-calendar-check"></i> Total Appointments</div>
+                    <div class="stat-card-value">24</div>
+                    <div class="stat-card-sub"><span class="up">↑ 3 new</span> this week</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label"><i class="fa-solid fa-envelope"></i> Contact Leads</div>
+                    <div class="stat-card-value">47</div>
+                    <div class="stat-card-sub"><span class="up">↑ 5 new</span> today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label"><i class="fa-solid fa-users"></i> Total Clients</div>
+                    <div class="stat-card-value">95+</div>
+                    <div class="stat-card-sub"><span class="up">↑ 2</span> this month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label"><i class="fa-solid fa-bullseye"></i> Leads Generated</div>
+                    <div class="stat-card-value">250+</div>
+                    <div class="stat-card-sub">All time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label"><i class="fa-solid fa-star"></i> Avg Rating</div>
+                    <div class="stat-card-value">4.9★</div>
+                    <div class="stat-card-sub">Client satisfaction</div>
+                </div>
+            </div>
+
+            <!-- Recent Appointments -->
+            <div class="table-wrap" style="margin-bottom:24px;">
+                <div class="table-header">
+                    <div>
+                        <h3>Recent Appointments</h3>
+                        <p>Latest bookings from appointment.html</p>
+                    </div>
+                    <button class="tbl-btn" onclick="showView('appointments')">View All →</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Business</th>
+                            <th>Date</th>
+                            <th>Mode</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="overviewApptTable"></tbody>
+                </table>
+            </div>
+
+            <!-- Services Breakdown -->
+            <div class="table-wrap">
+                <div class="table-header">
+                    <div>
+                        <h3>Most Requested Services</h3>
+                        <p>Based on appointment bookings</p>
+                    </div>
+                </div>
+                <div style="padding:20px 22px;">
+                    <div class="bar-chart" id="servicesChart"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ============================================
+        VIEW: APPOINTMENTS
+        ============================================ -->
+        <div class="view" id="view-appointments">
+
+            <div class="api-banner">
+                <i class="fa-solid fa-code"></i>
+                <span><strong>Backend:</strong> <code>GET /api/appointments</code> — returns all bookings from appointment.html form submissions.</span>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-card">
+                    <div class="stat-card-label"><i class="fa-solid fa-circle-dot" style="color:var(--primary)"></i> New</div>
+                    <div class="stat-card-value" id="apptNewCount">3</div>
+                    <div class="stat-card-sub">Awaiting response</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label"><i class="fa-solid fa-circle-dot" style="color:var(--yellow)"></i> Pending</div>
+                    <div class="stat-card-value" id="apptPendingCount">8</div>
+                    <div class="stat-card-sub">Scheduled, not done</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label"><i class="fa-solid fa-circle-dot" style="color:var(--blue)"></i> Confirmed</div>
+                    <div class="stat-card-value" id="apptConfirmedCount">10</div>
+                    <div class="stat-card-sub">In progress</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label"><i class="fa-solid fa-circle-dot" style="color:var(--text-muted)"></i> Completed</div>
+                    <div class="stat-card-value" id="apptDoneCount">3</div>
+                    <div class="stat-card-sub">Closed</div>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <div class="table-header">
+                    <div>
+                        <h3>All Appointments</h3>
+                        <p>From appointment.html bookings</p>
+                    </div>
+                    <div class="table-actions">
+                        <div class="search-wrap">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input class="search-input" type="text" placeholder="Search..." oninput="filterTable('apptTable',this.value)">
+                        </div>
+                        <button class="tbl-btn" onclick="exportCSV('appointments')">
+                            <i class="fa-solid fa-download"></i> Export
+                        </button>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Business</th>
+                            <th>Services</th>
+                            <th>Date & Time</th>
+                            <th>Mode</th>
+                            <th>Budget</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="apptTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============================================
+        VIEW: CONTACT LEADS
+        ============================================ -->
+        <div class="view" id="view-contacts">
+
+            <div class="api-banner">
+                <i class="fa-solid fa-code"></i>
+                <span><strong>Backend:</strong> <code>GET /api/contacts</code> — returns all submissions from contact.html form.</span>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-card">
+                    <div class="stat-card-label"><i class="fa-solid fa-inbox"></i> Total Leads</div>
+                    <div class="stat-card-value">47</div>
+                    <div class="stat-card-sub">All time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label"><i class="fa-solid fa-bell"></i> Unread</div>
+                    <div class="stat-card-value">5</div>
+                    <div class="stat-card-sub">Today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label"><i class="fa-solid fa-reply"></i> Replied</div>
+                    <div class="stat-card-value">38</div>
+                    <div class="stat-card-sub">80% response rate</div>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <div class="table-header">
+                    <div>
+                        <h3>Contact Form Leads</h3>
+                        <p>From contact.html</p>
+                    </div>
+                    <div class="table-actions">
+                        <div class="search-wrap">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input class="search-input" type="text" placeholder="Search..." oninput="filterTable('contactTable',this.value)">
+                        </div>
+                        <button class="tbl-btn" onclick="exportCSV('contacts')">
+                            <i class="fa-solid fa-download"></i> Export
+                        </button>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Business</th>
+                            <th>Service Interest</th>
+                            <th>Received</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contactTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============================================
+        VIEW: SERVICES (from services.html)
+        ============================================ -->
+        <div class="view" id="view-services">
+
+            <div class="api-banner">
+                <i class="fa-solid fa-code"></i>
+                <span><strong>Backend:</strong> <code>GET /api/services</code> · <code>POST /api/services</code> · <code>PUT /api/services/:id</code> · <code>DELETE /api/services/:id</code></span>
+            </div>
+
+            <div class="section-head">
+                <div>
+                    <h3>Services Management</h3>
+                    <p style="font-size:.78rem;color:var(--text-muted);">Manage all services shown on services.html</p>
+                </div>
+                <button class="topbar-btn primary" onclick="openModal('addService')">
+                    <i class="fa-solid fa-plus"></i> Add Service
+                </button>
+            </div>
+
+            <div class="card-grid" id="servicesGrid"></div>
+        </div>
+
+        <!-- ============================================
+        VIEW: CASE STUDIES (from case-studies.html)
+        ============================================ -->
+        <div class="view" id="view-casestudies">
+
+            <div class="api-banner">
+                <i class="fa-solid fa-code"></i>
+                <span><strong>Backend:</strong> <code>GET /api/case-studies</code> · <code>POST /api/case-studies</code> · <code>PUT /api/case-studies/:id</code></span>
+            </div>
+
+            <div class="section-head">
+                <div>
+                    <h3>Case Studies</h3>
+                    <p style="font-size:.78rem;color:var(--text-muted);">Manage results shown on case-studies.html</p>
+                </div>
+                <button class="topbar-btn primary" onclick="openModal('addCaseStudy')">
+                    <i class="fa-solid fa-plus"></i> Add Case Study
+                </button>
+            </div>
+
+            <div class="card-grid" id="caseStudiesGrid"></div>
+        </div>
+
+        <!-- ============================================
+        VIEW: TESTIMONIALS (from index.html)
+        ============================================ -->
+        <div class="view" id="view-testimonials">
+
+            <div class="api-banner">
+                <i class="fa-solid fa-code"></i>
+                <span><strong>Backend:</strong> <code>GET /api/testimonials</code> · <code>POST /api/testimonials</code> · <code>DELETE /api/testimonials/:id</code></span>
+            </div>
+
+            <div class="section-head">
+                <div>
+                    <h3>Client Testimonials</h3>
+                    <p style="font-size:.78rem;color:var(--text-muted);">Shown on index.html — Client Feedback section</p>
+                </div>
+                <button class="topbar-btn primary" onclick="openModal('addTestimonial')">
+                    <i class="fa-solid fa-plus"></i> Add Testimonial
+                </button>
+            </div>
+
+            <div class="card-grid" id="testimonialsGrid"></div>
+        </div>
+
+        <!-- ============================================
+        VIEW: TEAM (from index.html + about.html)
+        ============================================ -->
+        <div class="view" id="view-team">
+
+            <div class="api-banner">
+                <i class="fa-solid fa-code"></i>
+                <span><strong>Backend:</strong> <code>GET /api/team</code> · <code>PUT /api/team/:id</code> — updates team cards on index.html and about.html.</span>
+            </div>
+
+            <div class="section-head">
+                <div>
+                    <h3>Team Members</h3>
+                    <p style="font-size:.78rem;color:var(--text-muted);">Shown on index.html and about.html</p>
+                </div>
+                <button class="topbar-btn primary" onclick="openModal('addTeam')">
+                    <i class="fa-solid fa-plus"></i> Add Member
+                </button>
+            </div>
+
+            <div class="card-grid" id="teamGrid"></div>
+        </div>
+
+        <!-- ============================================
+        VIEW: PUBLIC STATS (index.html + all pages)
+        ============================================ -->
+        <div class="view" id="view-stats">
+
+            <div class="api-banner">
+                <i class="fa-solid fa-code"></i>
+                <span><strong>Backend:</strong> <code>PUT /api/site/stats</code> — updates the floating sidebar numbers and section stats across all pages.</span>
+            </div>
+
+            <div class="section-head">
+                <h3>Public Stats — Edit Site-Wide Numbers</h3>
+            </div>
+
+            <div class="settings-grid">
+                <div class="settings-card">
+                    <h4><i class="fa-solid fa-bullseye"></i> Leads Generated</h4>
+                    <p>Shown in floating sidebar + stats section on index.html and all pages.</p>
+                    <div class="field-group">
+                        <label>Value (e.g. 250+)</label>
+                        <input type="text" value="250+" id="stat-leads">
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h4><i class="fa-solid fa-users"></i> Businesses Assisted</h4>
+                    <p>Shown in stats section and about.html story box.</p>
+                    <div class="field-group">
+                        <label>Value (e.g. 95+)</label>
+                        <input type="text" value="95+" id="stat-clients">
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h4><i class="fa-solid fa-chart-line"></i> Average Growth</h4>
+                    <p>Displayed in stats section on index.html.</p>
+                    <div class="field-group">
+                        <label>Value (e.g. 320%)</label>
+                        <input type="text" value="320%" id="stat-growth">
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h4><i class="fa-solid fa-star"></i> Client Satisfaction</h4>
+                    <p>Star rating shown on index.html and sidebar.</p>
+                    <div class="field-group">
+                        <label>Value (e.g. 4.9★)</label>
+                        <input type="text" value="4.9★" id="stat-rating">
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:20px;">
+                <button class="topbar-btn primary" onclick="saveStats()">
+                    <i class="fa-solid fa-floppy-disk"></i> Save & Publish Stats
+                </button>
+            </div>
+        </div>
+
+        <!-- ============================================
+        VIEW: FAQs (from index.html + contact.html)
+        ============================================ -->
+        <div class="view" id="view-faqs">
+
+            <div class="api-banner">
+                <i class="fa-solid fa-code"></i>
+                <span><strong>Backend:</strong> <code>GET /api/faqs</code> · <code>POST /api/faqs</code> · <code>DELETE /api/faqs/:id</code> — updates FAQ sections on index.html and contact.html.</span>
+            </div>
+
+            <div class="section-head">
+                <div>
+                    <h3>FAQs</h3>
+                    <p style="font-size:.78rem;color:var(--text-muted);">Shown on index.html and contact.html</p>
+                </div>
+                <button class="topbar-btn primary" onclick="openModal('addFaq')">
+                    <i class="fa-solid fa-plus"></i> Add FAQ
+                </button>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Question</th>
+                            <th>Answer</th>
+                            <th>Page</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="faqTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============================================
+        VIEW: SETTINGS
+        ============================================ -->
+        <div class="view" id="view-settings">
+
+            <div class="section-head">
+                <h3>Site Settings & Integrations</h3>
+            </div>
+
+            <div class="settings-grid">
+
+                <div class="settings-card">
+                    <h4><i class="fa-solid fa-link"></i> Backend API URL</h4>
+                    <p>Base URL for all API calls from this dashboard.</p>
+                    <div class="field-group">
+                        <label>API Base URL</label>
+                        <input type="text" placeholder="https://api.digiuplift.in" id="apiBase">
+                    </div>
+                    <div class="field-group">
+                        <label>API Secret Key</label>
+                        <input type="password" placeholder="••••••••••••••••" id="apiKey">
+                    </div>
+                    <button class="topbar-btn primary" style="margin-top:8px;" onclick="saveSettings()">
+                        <i class="fa-solid fa-floppy-disk"></i> Save
+                    </button>
+                </div>
+
+                <div class="settings-card">
+                    <h4><i class="fa-brands fa-whatsapp"></i> WhatsApp & Email</h4>
+                    <p>Contact details shown across all pages and used for lead notifications.</p>
+                    <div class="field-group">
+                        <label>WhatsApp Number</label>
+                        <input type="text" value="+91 70051 37976" id="waNumber">
+                    </div>
+                    <div class="field-group">
+                        <label>Support Email</label>
+                        <input type="text" value="support.digiuplift@gmail.com" id="supportEmail">
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h4><i class="fa-solid fa-bell"></i> Notifications</h4>
+                    <p>Control when and how you get alerted about new leads.</p>
+                    <div class="settings-row">
+                        <span class="s-label">Email on new appointment</span>
+                        <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="settings-row">
+                        <span class="s-label">Email on contact form</span>
+                        <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="settings-row">
+                        <span class="s-label">WhatsApp notification</span>
+                        <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="settings-row">
+                        <span class="s-label">Daily digest email</span>
+                        <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h4><i class="fa-solid fa-globe"></i> Social Media Links</h4>
+                    <p>Shown in the social dock across all pages.</p>
+                    <div class="field-group">
+                        <label>Instagram URL</label>
+                        <input type="text" value="https://www.instagram.com/support.digiuplift/">
+                    </div>
+                    <div class="field-group">
+                        <label>Facebook URL</label>
+                        <input type="text" value="https://www.facebook.com/profile.php?id=61590467314804">
+                    </div>
+                    <div class="field-group">
+                        <label>X (Twitter) URL</label>
+                        <input type="text" value="https://x.com/digiuplift_NE">
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h4><i class="fa-solid fa-lock"></i> Admin Security</h4>
+                    <p>Change your dashboard PIN. In production, use server-side sessions instead.</p>
+                    <div class="field-group">
+                        <label>New PIN (4 digits)</label>
+                        <input type="password" placeholder="Enter new PIN" maxlength="4" id="newPin">
+                    </div>
+                    <div class="field-group">
+                        <label>Confirm PIN</label>
+                        <input type="password" placeholder="Confirm new PIN" maxlength="4" id="confirmPin">
+                    </div>
+                    <button class="topbar-btn primary" style="margin-top:8px;" onclick="changePin()">
+                        <i class="fa-solid fa-key"></i> Update PIN
+                    </button>
+                </div>
+
+                <div class="settings-card">
+                    <h4><i class="fa-solid fa-file-code"></i> Page Links</h4>
+                    <p>Quick access to all frontend pages to preview changes.</p>
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+                        <a href="index.html" target="_blank" class="tbl-btn" style="justify-content:space-between;">
+                            🏠 index.html <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                        <a href="services.html" target="_blank" class="tbl-btn" style="justify-content:space-between;">
+                            💼 services.html <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                        <a href="case-studies.html" target="_blank" class="tbl-btn" style="justify-content:space-between;">
+                            📊 case-studies.html <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                        <a href="about.html" target="_blank" class="tbl-btn" style="justify-content:space-between;">
+                            👥 about.html <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                        <a href="contact.html" target="_blank" class="tbl-btn" style="justify-content:space-between;">
+                            📬 contact.html <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                        <a href="appointment.html" target="_blank" class="tbl-btn" style="justify-content:space-between;">
+                            📅 appointment.html <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+</div>
+</div>
+
+<!-- ====================================================
+DETAIL PANEL (slide-in)
+==================================================== -->
+<div class="detail-panel" id="detailPanel">
+    <div class="panel-head">
+        <h3 id="panelTitle">Lead Details</h3>
+        <button class="panel-close" onclick="closePanel()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="panel-body" id="panelBody"></div>
+</div>
+
+<!-- ====================================================
+MODALS
+==================================================== -->
+
+<!-- ADD LEAD MODAL -->
+<div class="modal-overlay" id="modal-addLead">
+    <div class="modal">
+        <div class="modal-head">
+            <h3>➕ Add Lead Manually</h3>
+            <button class="modal-close" onclick="closeModal('addLead')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="field-row">
+                <div class="field-group"><label>Full Name *</label><input type="text" placeholder="Client name"></div>
+                <div class="field-group"><label>Phone *</label><input type="text" placeholder="+91 XXXXX XXXXX"></div>
+            </div>
+            <div class="field-group"><label>Email</label><input type="email" placeholder="email@example.com"></div>
+            <div class="field-row">
+                <div class="field-group"><label>Business Name</label><input type="text" placeholder="Business"></div>
+                <div class="field-group"><label>City</label><input type="text" placeholder="City"></div>
+            </div>
+            <div class="field-group">
+                <label>Service Interest</label>
+                <select>
+                    <option>SEO</option><option>Google Ads</option><option>Meta Ads</option>
+                    <option>Website Development</option><option>Social Media Marketing</option>
+                    <option>AI Automation</option><option>Full Package</option>
+                </select>
+            </div>
+            <div class="field-group"><label>Notes</label><textarea placeholder="Additional notes..."></textarea></div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn-cancel" onclick="closeModal('addLead')">Cancel</button>
+            <button class="btn-save" onclick="saveModal('addLead')">Save Lead</button>
+        </div>
+    </div>
+</div>
+
+<!-- ADD SERVICE MODAL -->
+<div class="modal-overlay" id="modal-addService">
+    <div class="modal">
+        <div class="modal-head">
+            <h3>➕ Add Service</h3>
+            <button class="modal-close" onclick="closeModal('addService')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="field-group"><label>Service Name *</label><input type="text" placeholder="e.g. Google Ads"></div>
+            <div class="field-group"><label>Category</label>
+                <select>
+                    <option>SEO & Search</option><option>Paid Advertising</option>
+                    <option>Social Media</option><option>Web Development</option><option>AI & Automation</option>
+                </select>
+            </div>
+            <div class="field-row">
+                <div class="field-group"><label>Starting Price (₹)</label><input type="text" placeholder="e.g. ₹3,999/mo"></div>
+                <div class="field-group"><label>Icon (FA class)</label><input type="text" placeholder="fa-search"></div>
+            </div>
+            <div class="field-group"><label>Short Description</label><textarea placeholder="What this service does..."></textarea></div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn-cancel" onclick="closeModal('addService')">Cancel</button>
+            <button class="btn-save" onclick="saveModal('addService')">Add Service</button>
+        </div>
+    </div>
+</div>
+
+<!-- ADD CASE STUDY MODAL -->
+<div class="modal-overlay" id="modal-addCaseStudy">
+    <div class="modal">
+        <div class="modal-head">
+            <h3>➕ Add Case Study</h3>
+            <button class="modal-close" onclick="closeModal('addCaseStudy')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="field-group"><label>Client / Business Name *</label><input type="text" placeholder="Business name"></div>
+            <div class="field-row">
+                <div class="field-group"><label>Industry</label><input type="text" placeholder="e.g. Restaurant"></div>
+                <div class="field-group"><label>Location</label><input type="text" placeholder="e.g. Agartala"></div>
+            </div>
+            <div class="field-group"><label>Services Used</label><input type="text" placeholder="SEO, Google Ads..."></div>
+            <div class="field-row">
+                <div class="field-group"><label>Key Result 1</label><input type="text" placeholder="e.g. +320% traffic"></div>
+                <div class="field-group"><label>Key Result 2</label><input type="text" placeholder="e.g. 45 leads/mo"></div>
+            </div>
+            <div class="field-group"><label>Summary</label><textarea placeholder="Brief description of work done..."></textarea></div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn-cancel" onclick="closeModal('addCaseStudy')">Cancel</button>
+            <button class="btn-save" onclick="saveModal('addCaseStudy')">Add Case Study</button>
+        </div>
+    </div>
+</div>
+
+<!-- ADD TESTIMONIAL MODAL -->
+<div class="modal-overlay" id="modal-addTestimonial">
+    <div class="modal">
+        <div class="modal-head">
+            <h3>➕ Add Testimonial</h3>
+            <button class="modal-close" onclick="closeModal('addTestimonial')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="field-group"><label>Client Name *</label><input type="text" placeholder="Full name"></div>
+            <div class="field-row">
+                <div class="field-group"><label>Location</label><input type="text" placeholder="e.g. Agartala"></div>
+                <div class="field-group"><label>Rating</label>
+                    <select><option>5★</option><option>4.5★</option><option>4★</option></select>
+                </div>
+            </div>
+            <div class="field-group"><label>Testimonial Text *</label><textarea placeholder="What the client said..."></textarea></div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn-cancel" onclick="closeModal('addTestimonial')">Cancel</button>
+            <button class="btn-save" onclick="saveModal('addTestimonial')">Add Testimonial</button>
+        </div>
+    </div>
+</div>
+
+<!-- ADD TEAM MEMBER MODAL -->
+<div class="modal-overlay" id="modal-addTeam">
+    <div class="modal">
+        <div class="modal-head">
+            <h3>➕ Add Team Member</h3>
+            <button class="modal-close" onclick="closeModal('addTeam')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="field-group"><label>Full Name *</label><input type="text" placeholder="Name"></div>
+            <div class="field-group"><label>Role / Title *</label><input type="text" placeholder="e.g. CEO & Back-end Developer"></div>
+            <div class="field-group"><label>Bio</label><textarea placeholder="Short bio..."></textarea></div>
+            <div class="field-row">
+                <div class="field-group"><label>LinkedIn URL</label><input type="text" placeholder="https://linkedin.com/..."></div>
+                <div class="field-group"><label>Icon (FA class)</label><input type="text" placeholder="fa-user-tie"></div>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn-cancel" onclick="closeModal('addTeam')">Cancel</button>
+            <button class="btn-save" onclick="saveModal('addTeam')">Add Member</button>
+        </div>
+    </div>
+</div>
+
+<!-- ADD FAQ MODAL -->
+<div class="modal-overlay" id="modal-addFaq">
+    <div class="modal">
+        <div class="modal-head">
+            <h3>➕ Add FAQ</h3>
+            <button class="modal-close" onclick="closeModal('addFaq')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="field-group"><label>Question *</label><input type="text" placeholder="FAQ question"></div>
+            <div class="field-group"><label>Answer *</label><textarea placeholder="FAQ answer..."></textarea></div>
+            <div class="field-group"><label>Show On Page</label>
+                <select>
+                    <option>index.html</option>
+                    <option>contact.html</option>
+                    <option>Both pages</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn-cancel" onclick="closeModal('addFaq')">Cancel</button>
+            <button class="btn-save" onclick="saveModal('addFaq')">Add FAQ</button>
+        </div>
+    </div>
+</div>
+
+<!-- ====================================================
+TOAST
+==================================================== -->
+<div id="toast"><i class="fa-solid fa-circle-check"></i> <span id="toastMsg">Saved successfully!</span></div>
+
+<!-- ====================================================
+JAVASCRIPT
+==================================================== -->
+<script>
+
+/* ====================================================
+CONFIG — CHANGE THESE
+==================================================== */
+
+// ⚠️ Change this to your desired PIN
+let ADMIN_PIN = '1234';
+
+// ⚠️ Replace with your actual backend base URL
+const API_BASE = 'https://api.digiuplift.in';
+
+/*
+BACKEND INTEGRATION GUIDE
+==========================
+Every data section below has a comment showing
+the exact API endpoint to call. Replace the
+mockData arrays with actual fetch() calls like:
+
+const res  = await fetch(`${API_BASE}/api/appointments`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+});
+const data = await res.json();
+
+For POST (create):
+await fetch(`${API_BASE}/api/appointments`, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer ...' },
+    body: JSON.stringify(payload)
+});
+
+For DELETE:
+await fetch(`${API_BASE}/api/appointments/${id}`, { method: 'DELETE', ... });
+*/
+
+/* ====================================================
+PIN LOGIN
+==================================================== */
+let pinInput = '';
+
+function pinPress(n){
+    if(pinInput.length >= 4) return;
+    pinInput += n;
+    updateDots();
+    if(pinInput.length === 4) setTimeout(checkPin, 200);
+}
+
+function pinClear(){
+    pinInput = '';
+    updateDots();
+    document.getElementById('pinError').textContent = '';
+}
+
+function updateDots(){
+    for(let i=0;i<4;i++){
+        document.getElementById('d'+i).classList.toggle('filled', i < pinInput.length);
+    }
+}
+
+function checkPin(){
+    if(pinInput === ADMIN_PIN){
+        document.getElementById('loginGate').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        initDashboard();
+    } else {
+        document.getElementById('pinError').textContent = 'Incorrect PIN. Try again.';
+        pinInput = '';
+        updateDots();
+        document.getElementById('loginGate').style.animation = 'none';
+        document.getElementById('loginGate').querySelector('.login-box').style.animation = 'shake .4s ease';
+    }
+}
+
+function logout(){
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('loginGate').style.display = 'flex';
+    pinInput = ''; updateDots();
+}
+
+function changePin(){
+    const np = document.getElementById('newPin').value;
+    const cp = document.getElementById('confirmPin').value;
+    if(np.length !== 4 || isNaN(np)){ showToast('PIN must be exactly 4 digits.'); return; }
+    if(np !== cp){ showToast('PINs do not match.'); return; }
+    ADMIN_PIN = np;
+    showToast('PIN updated successfully!');
+}
+
+/* ====================================================
+MOCK DATA
+Replace these arrays with API fetch() calls
+to your backend endpoints.
+==================================================== */
+
+// API_ENDPOINT: GET /api/appointments
+const appointments = [
+    { id:1, name:'Rajib Debnath', phone:'+91 94360 11111', email:'rajib@example.com', business:'Debnath Traders', city:'Agartala', services:'SEO, Google Ads', date:'2025-06-10', time:'11:00 AM', mode:'Google Meet', budget:'₹5,000–₹10,000', industry:'Retail', requirements:'Improve Google ranking', status:'new' },
+    { id:2, name:'Ananya Dutta', phone:'+91 98765 22222', email:'ananya@example.com', business:'Ananya Boutique', city:'Guwahati', services:'Meta Ads', date:'2025-06-11', time:'3:00 PM', mode:'WhatsApp', budget:'₹3,000–₹5,000', industry:'Fashion', requirements:'Run Instagram ads for seasonal sale', status:'confirmed' },
+    { id:3, name:'Rakesh Agarwal', phone:'+91 70051 33333', email:'rakesh@example.com', business:'Shillong Spice', city:'Shillong', services:'Website Development, SEO', date:'2025-06-12', time:'10:00 AM', mode:'Zoom', budget:'₹10,000–₹20,000', industry:'Restaurant', requirements:'New website + local SEO', status:'pending' },
+    { id:4, name:'Priya Chakraborty', phone:'+91 88765 44444', email:'priya@example.com', business:'Priya Clinic', city:'Agartala', services:'Social Media Marketing', date:'2025-06-08', time:'2:00 PM', mode:'WhatsApp', budget:'₹1,000–₹3,000', industry:'Healthcare', requirements:'Regular health tip posts + brand building', status:'done' },
+    { id:5, name:'Sumon Das', phone:'+91 76543 55555', email:'sumon@example.com', business:'Das Electronics', city:'Silchar', services:'Google Ads', date:'2025-06-09', time:'4:00 PM', mode:'Google Meet', budget:'₹5,000–₹10,000', industry:'Electronics', requirements:'Lead gen for store visits', status:'cancelled' },
+];
+
+// API_ENDPOINT: GET /api/contacts
+const contacts = [
+    { id:1, name:'Biswajit Roy', phone:'+91 94512 11111', email:'biswa@example.com', business:'Roy Pharma', service:'SEO', message:'Want to rank for medicine store in Agartala', received:'Today, 9:14 AM', status:'new' },
+    { id:2, name:'Meenakshi Nair', phone:'+91 80041 22222', email:'meena@example.com', business:'Nair Salon', service:'Meta Ads', message:'Need Facebook ads for beauty salon', received:'Today, 11:30 AM', status:'new' },
+    { id:3, name:'Arjun Sinha', phone:'+91 99340 33333', email:'arjun@example.com', business:'Sinha Realty', service:'Google Ads', message:'Real estate lead generation', received:'Yesterday', status:'replied' },
+    { id:4, name:'Lipika Barman', phone:'+91 86780 44444', email:'lipika@example.com', business:'Lipika Catering', service:'Social Media', message:'Want Instagram presence built from scratch', received:'Jun 2', status:'replied' },
+    { id:5, name:'Tapan Sarkar', phone:'+91 75430 55555', email:'tapan@example.com', business:'Sarkar Coaching', service:'Website Development', message:'Need a website for my coaching centre', received:'Jun 1', status:'new' },
+    { id:6, name:'Rima Pal', phone:'+91 94301 66666', email:'rima@example.com', business:'Rima Fashion', service:'Full Package', message:'Full digital marketing for my clothing brand', received:'May 30', status:'replied' },
+];
+
+// API_ENDPOINT: GET /api/services
+const services = [
+    { id:1, name:'SEO – Local & On-Page', category:'SEO & Search', price:'₹3,999/mo', icon:'fa-magnifying-glass', desc:'Rank higher on Google for local searches.' },
+    { id:2, name:'Google Search Ads', category:'Paid Advertising', price:'₹4,999/mo', icon:'fa-google', desc:'High-intent leads via Google search campaigns.' },
+    { id:3, name:'Meta Ads (FB & IG)', category:'Paid Advertising', price:'₹3,999/mo', icon:'fa-meta', desc:'Targeted Facebook & Instagram ad campaigns.' },
+    { id:4, name:'Social Media Management', category:'Social Media', price:'₹2,999/mo', icon:'fa-share-nodes', desc:'Content, posting, and community management.' },
+    { id:5, name:'Website Development', category:'Web Development', price:'From ₹9,999', icon:'fa-code', desc:'Modern, fast, conversion-focused websites.' },
+    { id:6, name:'AI Automation', category:'AI & Automation', price:'₹4,999/mo', icon:'fa-robot', desc:'WhatsApp bots, follow-ups, lead capture automation.' },
+];
+
+// API_ENDPOINT: GET /api/case-studies
+const caseStudies = [
+    { id:1, client:'Debnath Traders', industry:'Retail', location:'Agartala', services:'SEO + Google Ads', result1:'+320% organic traffic', result2:'45 leads/month', summary:'Local SEO and search ads drove consistent foot traffic and online enquiries.' },
+    { id:2, client:'Ananya Boutique', industry:'Fashion', location:'Guwahati', services:'Meta Ads', result1:'3.8x ROAS', result2:'₹1.2L revenue in 30 days', summary:'Instagram + Facebook carousel ads for seasonal fashion sale.' },
+    { id:3, client:'Shillong Spice', industry:'Restaurant', location:'Shillong', services:'Website + SEO', result1:'#1 on Google Maps', result2:'+60% reservations', summary:'New website with local SEO pushed them to top of local search.' },
+];
+
+// API_ENDPOINT: GET /api/testimonials
+const testimonials = [
+    { id:1, name:'Rajib Debnath', location:'Agartala', rating:'5★', text:'The website redesign helped us get more enquiries from Agartala and nearby areas.' },
+    { id:2, name:'Ananya Dutta', location:'Guwahati', rating:'5★', text:'Professional communication and practical digital marketing support.' },
+    { id:3, name:'Rakesh Agarwal', location:'Shillong', rating:'5★', text:'Our business visibility improved significantly after local SEO work.' },
+];
+
+// API_ENDPOINT: GET /api/team
+const team = [
+    { id:1, name:'Shuvan Shil', role:'CEO & Back-end Developer 🔗', icon:'fa-user-tie', bio:'Leads the agency vision and builds the backend systems that power client campaigns.' },
+    { id:2, name:'Sumit Deb', role:'CMO & Front-end Developer 🚀', icon:'fa-chart-line', bio:'Drives marketing strategy and builds beautiful, conversion-focused interfaces.' },
+    { id:3, name:'Priya Das', role:'Creative Designer 🎨', icon:'fa-palette', bio:'Crafts the visuals that make brands unforgettable.' },
+    { id:4, name:'Subham Paul', role:'Web Developer & Automation ⚙️', icon:'fa-code', bio:'Builds fast, modern websites and AI-powered automation workflows.' },
+];
+
+// API_ENDPOINT: GET /api/faqs
+const faqs = [
+    { id:1, q:'How quickly can I see results?', a:'Usually within 30–90 days depending on the service.', page:'index.html' },
+    { id:2, q:'Do you work with small businesses?', a:'Yes, startups and local businesses are our primary focus.', page:'index.html' },
+    { id:3, q:'Is the consultation free?', a:'Yes, the first strategy session is completely free.', page:'index.html' },
+    { id:4, q:'How quickly will you respond to my message?', a:'Within 4–6 hours on weekdays. WhatsApp for faster replies.', page:'contact.html' },
+    { id:5, q:'Do you work with businesses outside Agartala?', a:'Yes, across all 8 states of Northeast India.', page:'contact.html' },
+];
+
+/* ====================================================
+INIT DASHBOARD
+==================================================== */
+function initDashboard(){
+    renderOverview();
+    renderAppointments();
+    renderContacts();
+    renderServices();
+    renderCaseStudies();
+    renderTestimonials();
+    renderTeam();
+    renderFAQs();
+}
+
+/* ====================================================
+VIEW NAVIGATION
+==================================================== */
+const viewTitles = {
+    overview:     ['Overview', 'Agency performance at a glance'],
+    appointments: ['Appointments', 'All bookings from appointment.html'],
+    contacts:     ['Contact Leads', 'All submissions from contact.html'],
+    services:     ['Services', 'Manage services.html content'],
+    casestudies:  ['Case Studies', 'Manage case-studies.html content'],
+    testimonials: ['Testimonials', 'Manage index.html testimonials'],
+    team:         ['Team Members', 'Manage index.html + about.html team'],
+    stats:        ['Public Stats', 'Edit site-wide numbers'],
+    faqs:         ['FAQs', 'Manage index.html + contact.html FAQs'],
+    settings:     ['Settings', 'Backend integration & site config'],
+};
+
+function showView(name){
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('view-'+name).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => {
+        if(n.getAttribute('onclick')?.includes("'"+name+"'")){
+            n.classList.add('active');
+        }
+    });
+    const [title, sub] = viewTitles[name] || [name,''];
+    document.getElementById('topbarTitle').textContent = title;
+    document.getElementById('topbarSub').textContent = sub;
+    closePanel();
+}
+
+/* ====================================================
+RENDER: OVERVIEW
+==================================================== */
+function renderOverview(){
+    // Recent 4 appointments
+    const tbody = document.getElementById('overviewApptTable');
+    tbody.innerHTML = appointments.slice(0,4).map(a => `
+        <tr>
+            <td class="td-name">${a.name}</td>
+            <td>${a.business}</td>
+            <td>${a.date}</td>
+            <td>${a.mode}</td>
+            <td>${statusBadge(a.status)}</td>
+        </tr>
+    `).join('');
+
+    // Services chart
+    const svcCounts = {};
+    appointments.forEach(a => {
+        a.services.split(',').forEach(s => {
+            const key = s.trim();
+            svcCounts[key] = (svcCounts[key]||0)+1;
+        });
+    });
+    const sorted = Object.entries(svcCounts).sort((a,b)=>b[1]-a[1]);
+    const max = sorted[0]?.[1] || 1;
+    document.getElementById('servicesChart').innerHTML = sorted.map(([svc,count]) => `
+        <div class="bar-row">
+            <div class="bar-label">${svc}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${(count/max)*100}%"></div></div>
+            <div class="bar-val">${count}</div>
+        </div>
+    `).join('');
+}
+
+/* ====================================================
+RENDER: APPOINTMENTS
+==================================================== */
+function renderAppointments(){
+    const counts = { new:0, pending:0, confirmed:0, done:0 };
+    appointments.forEach(a => { if(counts[a.status]!==undefined) counts[a.status]++; });
+    document.getElementById('apptNewCount').textContent       = counts.new;
+    document.getElementById('apptPendingCount').textContent   = counts.pending;
+    document.getElementById('apptConfirmedCount').textContent = counts.confirmed;
+    document.getElementById('apptDoneCount').textContent      = counts.done;
+    document.getElementById('apptBadge').textContent          = counts.new;
+
+    document.getElementById('apptTable').innerHTML = appointments.map((a,i) => `
+        <tr>
+            <td>${a.id}</td>
+            <td class="td-name">${a.name}<br><small style="color:var(--text-muted);font-weight:400">${a.city}</small></td>
+            <td><a href="tel:${a.phone}" style="color:var(--primary)">${a.phone}</a></td>
+            <td>${a.business}</td>
+            <td style="max-width:140px;font-size:.75rem">${a.services}</td>
+            <td>${a.date}<br><small style="color:var(--text-muted)">${a.time}</small></td>
+            <td>${a.mode}</td>
+            <td style="font-size:.78rem">${a.budget}</td>
+            <td>${statusBadge(a.status)}</td>
+            <td>
+                <div class="row-actions">
+                    <button class="action-btn" onclick="openApptPanel(${a.id})" title="View"><i class="fa-solid fa-eye"></i></button>
+                    <button class="action-btn" onclick="whatsapp('${a.phone}','${a.name}')" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></button>
+                    <button class="action-btn del" onclick="deleteRow('appointments',${a.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+/* ====================================================
+RENDER: CONTACTS
+==================================================== */
+function renderContacts(){
+    const unread = contacts.filter(c=>c.status==='new').length;
+    document.getElementById('contactBadge').textContent = unread;
+
+    document.getElementById('contactTable').innerHTML = contacts.map(c => `
+        <tr>
+            <td>${c.id}</td>
+            <td class="td-name">${c.name}</td>
+            <td><a href="tel:${c.phone}" style="color:var(--primary)">${c.phone}</a></td>
+            <td><a href="mailto:${c.email}" style="color:var(--primary)">${c.email}</a></td>
+            <td>${c.business}</td>
+            <td>${c.service}</td>
+            <td style="font-size:.78rem;color:var(--text-muted)">${c.received}</td>
+            <td>${statusBadge(c.status)}</td>
+            <td>
+                <div class="row-actions">
+                    <button class="action-btn" onclick="openContactPanel(${c.id})" title="View"><i class="fa-solid fa-eye"></i></button>
+                    <button class="action-btn" onclick="whatsapp('${c.phone}','${c.name}')" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></button>
+                    <button class="action-btn del" onclick="deleteRow('contacts',${c.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+/* ====================================================
+RENDER: SERVICES
+==================================================== */
+function renderServices(){
+    document.getElementById('servicesGrid').innerHTML = services.map(s => `
+        <div class="admin-card">
+            <div class="card-top-actions">
+                <button class="action-btn" title="Edit" onclick="showToast('Edit mode — connect to PUT /api/services/${s.id}')"><i class="fa-solid fa-pen"></i></button>
+                <button class="action-btn del" title="Delete" onclick="deleteRow('services',${s.id})"><i class="fa-solid fa-trash"></i></button>
+            </div>
+            <div class="admin-card-icon"><i class="fa-solid ${s.icon}"></i></div>
+            <h4>${s.name}</h4>
+            <p>${s.desc}</p>
+            <span class="card-chip">${s.price}</span>
+            <br>
+            <span class="card-chip" style="background:rgba(77,159,255,.1);border-color:rgba(77,159,255,.25);color:var(--blue);margin-top:4px;">${s.category}</span>
+        </div>
+    `).join('');
+}
+
+/* ====================================================
+RENDER: CASE STUDIES
+==================================================== */
+function renderCaseStudies(){
+    document.getElementById('caseStudiesGrid').innerHTML = caseStudies.map(c => `
+        <div class="admin-card">
+            <div class="card-top-actions">
+                <button class="action-btn" title="Edit" onclick="showToast('Edit — connect to PUT /api/case-studies/${c.id}')"><i class="fa-solid fa-pen"></i></button>
+                <button class="action-btn del" title="Delete" onclick="deleteRow('casestudies',${c.id})"><i class="fa-solid fa-trash"></i></button>
+            </div>
+            <div class="admin-card-icon"><i class="fa-solid fa-chart-line"></i></div>
+            <h4>${c.client}</h4>
+            <p>${c.summary}</p>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
+                <span class="card-chip">${c.result1}</span>
+                <span class="card-chip">${c.result2}</span>
+            </div>
+            <div style="margin-top:8px;font-size:.75rem;color:var(--text-muted);">
+                ${c.industry} · ${c.location} · ${c.services}
+            </div>
+        </div>
+    `).join('');
+}
+
+/* ====================================================
+RENDER: TESTIMONIALS
+==================================================== */
+function renderTestimonials(){
+    document.getElementById('testimonialsGrid').innerHTML = testimonials.map(t => `
+        <div class="admin-card">
+            <div class="card-top-actions">
+                <button class="action-btn del" title="Delete" onclick="deleteRow('testimonials',${t.id})"><i class="fa-solid fa-trash"></i></button>
+            </div>
+            <div style="color:var(--primary);font-size:1rem;margin-bottom:10px;">${t.rating}</div>
+            <p style="font-size:.85rem;color:var(--text-dim);line-height:1.6;font-style:italic;">"${t.text}"</p>
+            <div style="margin-top:12px;font-size:.78rem;font-weight:700;color:var(--primary);">${t.name} · ${t.location}</div>
+        </div>
+    `).join('');
+}
+
+/* ====================================================
+RENDER: TEAM
+==================================================== */
+function renderTeam(){
+    document.getElementById('teamGrid').innerHTML = team.map(m => `
+        <div class="admin-card">
+            <div class="card-top-actions">
+                <button class="action-btn" title="Edit" onclick="showToast('Edit — connect to PUT /api/team/${m.id}')"><i class="fa-solid fa-pen"></i></button>
+                <button class="action-btn del" title="Delete" onclick="deleteRow('team',${m.id})"><i class="fa-solid fa-trash"></i></button>
+            </div>
+            <div class="admin-card-icon"><i class="fa-solid ${m.icon}"></i></div>
+            <h4>${m.name}</h4>
+            <div style="font-size:.75rem;color:var(--primary);margin-bottom:6px;">${m.role}</div>
+            <p>${m.bio}</p>
+        </div>
+    `).join('');
+}
+
+/* ====================================================
+RENDER: FAQs
+==================================================== */
+function renderFAQs(){
+    document.getElementById('faqTable').innerHTML = faqs.map(f => `
+        <tr>
+            <td>${f.id}</td>
+            <td style="max-width:220px;font-weight:600;">${f.q}</td>
+            <td style="max-width:280px;color:var(--text-muted);font-size:.78rem;">${f.a}</td>
+            <td><span class="badge badge-confirmed">${f.page}</span></td>
+            <td>
+                <div class="row-actions">
+                    <button class="action-btn" title="Edit" onclick="showToast('Edit — connect to PUT /api/faqs/${f.id}')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="action-btn del" title="Delete" onclick="deleteRow('faqs',${f.id})"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+/* ====================================================
+DETAIL PANELS
+==================================================== */
+function openApptPanel(id){
+    const a = appointments.find(x=>x.id===id);
+    if(!a) return;
+    document.getElementById('panelTitle').textContent = 'Appointment — ' + a.name;
+    document.getElementById('panelBody').innerHTML = `
+        <div class="panel-section-title">Contact Info</div>
+        <div class="detail-row"><span class="lbl">Name</span><span class="val">${a.name}</span></div>
+        <div class="detail-row"><span class="lbl">Phone</span><span class="val"><a href="tel:${a.phone}" style="color:var(--primary)">${a.phone}</a></span></div>
+        <div class="detail-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${a.email}" style="color:var(--primary);font-size:.78rem">${a.email}</a></span></div>
+        <div class="detail-row"><span class="lbl">City</span><span class="val">${a.city}</span></div>
+
+        <div class="panel-section-title">Business</div>
+        <div class="detail-row"><span class="lbl">Business</span><span class="val">${a.business}</span></div>
+        <div class="detail-row"><span class="lbl">Industry</span><span class="val">${a.industry}</span></div>
+        <div class="detail-row"><span class="lbl">Budget</span><span class="val">${a.budget}</span></div>
+
+        <div class="panel-section-title">Appointment</div>
+        <div class="detail-row"><span class="lbl">Date</span><span class="val">${a.date}</span></div>
+        <div class="detail-row"><span class="lbl">Time</span><span class="val">${a.time}</span></div>
+        <div class="detail-row"><span class="lbl">Mode</span><span class="val">${a.mode}</span></div>
+        <div class="detail-row"><span class="lbl">Services</span><span class="val">${a.services}</span></div>
+
+        <div class="panel-section-title">Requirements</div>
+        <p style="font-size:.82rem;color:var(--text-dim);line-height:1.6;padding:8px 0">${a.requirements}</p>
+
+        <div class="panel-section-title">Update Status</div>
+        <select class="status-select" id="statusSel-${a.id}" onchange="updateStatus('appointments',${a.id},this.value)">
+            <option value="new"       ${a.status==='new'?'selected':''}>🆕 New</option>
+            <option value="pending"   ${a.status==='pending'?'selected':''}>⏳ Pending</option>
+            <option value="confirmed" ${a.status==='confirmed'?'selected':''}>✅ Confirmed</option>
+            <option value="done"      ${a.status==='done'?'selected':''}>🏁 Done</option>
+            <option value="cancelled" ${a.status==='cancelled'?'selected':''}>❌ Cancelled</option>
+        </select>
+
+        <button class="panel-btn panel-btn-primary" onclick="whatsapp('${a.phone}','${a.name}')">
+            <i class="fa-brands fa-whatsapp"></i> Message on WhatsApp
+        </button>
+        <button class="panel-btn panel-btn-ghost" onclick="window.location.href='mailto:${a.email}'">
+            <i class="fa-solid fa-envelope"></i> Send Email
+        </button>
+        <button class="panel-btn panel-btn-danger" onclick="deleteRow('appointments',${a.id});closePanel()">
+            <i class="fa-solid fa-trash"></i> Delete Record
+        </button>
+    `;
+    document.getElementById('detailPanel').classList.add('open');
+}
+
+function openContactPanel(id){
+    const c = contacts.find(x=>x.id===id);
+    if(!c) return;
+    document.getElementById('panelTitle').textContent = 'Lead — ' + c.name;
+    document.getElementById('panelBody').innerHTML = `
+        <div class="panel-section-title">Contact Info</div>
+        <div class="detail-row"><span class="lbl">Name</span><span class="val">${c.name}</span></div>
+        <div class="detail-row"><span class="lbl">Phone</span><span class="val"><a href="tel:${c.phone}" style="color:var(--primary)">${c.phone}</a></span></div>
+        <div class="detail-row"><span class="lbl">Email</span><span class="val"><a href="mailto:${c.email}" style="color:var(--primary);font-size:.78rem">${c.email}</a></span></div>
+        <div class="detail-row"><span class="lbl">Business</span><span class="val">${c.business}</span></div>
+        <div class="detail-row"><span class="lbl">Service Interest</span><span class="val">${c.service}</span></div>
+        <div class="detail-row"><span class="lbl">Received</span><span class="val">${c.received}</span></div>
+
+        <div class="panel-section-title">Message</div>
+        <p style="font-size:.82rem;color:var(--text-dim);line-height:1.6;padding:8px 0;background:var(--surface2);border-radius:8px;padding:12px;border:1px solid var(--border);">${c.message}</p>
+
+        <div class="panel-section-title">Update Status</div>
+        <select class="status-select" onchange="updateStatus('contacts',${c.id},this.value)">
+            <option value="new"    ${c.status==='new'?'selected':''}>🆕 New</option>
+            <option value="replied" ${c.status==='replied'?'selected':''}>✅ Replied</option>
+            <option value="done"   ${c.status==='done'?'selected':''}>🏁 Done</option>
+        </select>
+
+        <button class="panel-btn panel-btn-primary" onclick="whatsapp('${c.phone}','${c.name}')">
+            <i class="fa-brands fa-whatsapp"></i> Message on WhatsApp
+        </button>
+        <button class="panel-btn panel-btn-ghost" onclick="window.location.href='mailto:${c.email}'">
+            <i class="fa-solid fa-envelope"></i> Send Email
+        </button>
+        <button class="panel-btn panel-btn-danger" onclick="deleteRow('contacts',${c.id});closePanel()">
+            <i class="fa-solid fa-trash"></i> Delete Lead
+        </button>
+    `;
+    document.getElementById('detailPanel').classList.add('open');
+}
+
+function closePanel(){
+    document.getElementById('detailPanel').classList.remove('open');
+}
+
+/* ====================================================
+STATUS BADGE HELPER
+==================================================== */
+function statusBadge(status){
+    const map = {
+        new:       '<span class="badge badge-new">🆕 New</span>',
+        pending:   '<span class="badge badge-pending">⏳ Pending</span>',
+        confirmed: '<span class="badge badge-confirmed">✅ Confirmed</span>',
+        done:      '<span class="badge badge-done">🏁 Done</span>',
+        cancelled: '<span class="badge badge-cancelled">❌ Cancelled</span>',
+        replied:   '<span class="badge badge-confirmed">✅ Replied</span>',
+    };
+    return map[status] || status;
+}
+
+/* ====================================================
+UPDATE STATUS
+API_ENDPOINT: PATCH /api/appointments/:id  { status }
+API_ENDPOINT: PATCH /api/contacts/:id      { status }
+==================================================== */
+function updateStatus(type, id, newStatus){
+    const arr = type === 'appointments' ? appointments : contacts;
+    const item = arr.find(x=>x.id===id);
+    if(item){ item.status = newStatus; }
+    if(type === 'appointments'){ renderAppointments(); renderOverview(); }
+    else { renderContacts(); }
+    showToast('Status updated → ' + newStatus);
+
+    /* BACKEND CALL:
+    fetch(`${API_BASE}/api/${type}/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+    });
+    */
+}
+
+/* ====================================================
+DELETE ROW
+API_ENDPOINT: DELETE /api/{type}/:id
+==================================================== */
+function deleteRow(type, id){
+    if(!confirm('Delete this record? This cannot be undone.')) return;
+    showToast('Record deleted');
+
+    /* BACKEND CALL:
+    fetch(`${API_BASE}/api/${type}/${id}`, { method: 'DELETE' });
+    */
+}
+
+/* ====================================================
+WHATSAPP QUICK LINK
+==================================================== */
+function whatsapp(phone, name){
+    const num = phone.replace(/\D/g,'');
+    const msg = encodeURIComponent(`Hi ${name}, this is the team from DIGI Uplift NE following up on your enquiry. 😊`);
+    window.open(`https://wa.me/${num}?text=${msg}`, '_blank');
+}
+
+/* ====================================================
+SEARCH / FILTER TABLE
+==================================================== */
+function filterTable(tableId, query){
+    const rows = document.getElementById(tableId).querySelectorAll('tr');
+    const q = query.toLowerCase();
+    rows.forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+/* ====================================================
+EXPORT CSV
+==================================================== */
+function exportCSV(type){
+    const data = type === 'appointments' ? appointments : contacts;
+    if(!data.length){ showToast('No data to export'); return; }
+    const keys = Object.keys(data[0]);
+    const csv = [keys.join(','), ...data.map(row => keys.map(k => `"${row[k]}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type:'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `digiuplift_${type}_${Date.now()}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    showToast('CSV exported successfully!');
+}
+
+/* ====================================================
+SAVE STATS
+API_ENDPOINT: PUT /api/site/stats
+==================================================== */
+function saveStats(){
+    const payload = {
+        leads:   document.getElementById('stat-leads').value,
+        clients: document.getElementById('stat-clients').value,
+        growth:  document.getElementById('stat-growth').value,
+        rating:  document.getElementById('stat-rating').value,
+    };
+    showToast('Stats saved & published to all pages!');
+
+    /* BACKEND CALL:
+    fetch(`${API_BASE}/api/site/stats`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    */
+}
+
+/* ====================================================
+MODAL OPEN / CLOSE / SAVE
+==================================================== */
+function openModal(id){
+    document.getElementById('modal-'+id).classList.add('open');
+}
+
+function closeModal(id){
+    document.getElementById('modal-'+id).classList.remove('open');
+}
+
+function saveModal(id){
+    closeModal(id);
+    showToast('Saved! Connect to your backend API to persist this data.');
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+        if(e.target === overlay) overlay.classList.remove('open');
+    });
+});
+
+/* ====================================================
+SAVE SETTINGS
+==================================================== */
+function saveSettings(){
+    showToast('Settings saved successfully!');
+}
+
+/* ====================================================
+REFRESH DATA
+API_ENDPOINT: Re-fetches all endpoints
+==================================================== */
+function refreshData(){
+    showToast('Data refreshed!');
+    renderOverview();
+    renderAppointments();
+    renderContacts();
+}
+
+/* ====================================================
+TOAST NOTIFICATION
+==================================================== */
+let toastTimer;
+function showToast(msg){
+    clearTimeout(toastTimer);
+    document.getElementById('toastMsg').textContent = msg;
+    document.getElementById('toast').classList.add('show');
+    toastTimer = setTimeout(() => document.getElementById('toast').classList.remove('show'), 3000);
+}
+
+</script>
+</body>
+</html>
